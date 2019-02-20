@@ -75,7 +75,7 @@ public class Connection {
 		json.put(Fields.OPERATION, Fields.OPERATION_LOGIN);
 		json.put(Fields.USERNAME, username);
 		json.put(Fields.PASSWORD, password);
-		json.write (writer);
+		json.write(writer);
 
 		// send login request and wait reply
 		String jsonString;
