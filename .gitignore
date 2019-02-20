@@ -1,5 +1,12 @@
+.DS_Store
+._*
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+
 *.jar
 *.iml
-*.DS_Store
+
 .idea/
 out/
