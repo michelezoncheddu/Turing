@@ -18,9 +18,10 @@ import static java.lang.System.out;
  * Implements the turing server.
  */
 public class Server implements Runnable {
-	private final int RMI_PORT = 1099;
 	private final String SERVER_NAME = "TURING_SERVER";
-	private final int DEFAULT_PORT = 1100;
+	private final int RMI_PORT        = 1099;
+	private final int DEFAULT_PORT    = 1100;
+	private final int BACKGROUND_PORT = 1101;
 	private boolean stop = false;
 
 	/**
@@ -32,14 +33,15 @@ public class Server implements Runnable {
 		exportObject(userManager);
 		ClientHandler.setUserManager(userManager);
 
-		ServerSocket serverSocket;
-		Socket clientSocket;
+		ServerSocket serverSocket, backgroundSocket;
+		Socket clientConnection, backgroundConnection;
 
 		// initialize the thread pool
 		ThreadPoolExecutor threadPool = (ThreadPoolExecutor) Executors.newCachedThreadPool();
 
 		try {
 			serverSocket = new ServerSocket(DEFAULT_PORT);
+			backgroundSocket = new ServerSocket(BACKGROUND_PORT);
 		} catch (IOException e) {
 			e.printStackTrace();
 			return;
@@ -50,19 +52,21 @@ public class Server implements Runnable {
 		// waiting for connections loop
 		while (!stop) {
 			try {
-				clientSocket = serverSocket.accept();
+				clientConnection = serverSocket.accept();
+				backgroundConnection = backgroundSocket.accept();
 			} catch (IOException e) {
 				if (stop)
 					break;
 				throw new RuntimeException("Error accepting client connection", e);
 			}
-			threadPool.execute(new ClientHandler(clientSocket));
+			threadPool.execute(new ClientHandler(clientConnection, backgroundConnection));
 		}
 		out.println("Server stopped");
 
-		// closing socket
+		// closing defaultConnection
 		try {
 			serverSocket.close();
+			backgroundSocket.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

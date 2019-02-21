@@ -12,7 +12,7 @@ public class Document {
 	/**
 	 * TO DO
 	 */
-	Document(String name, int sections, User creator) throws IOException {
+	Document(String name, User creator, int sections) throws IOException {
 		this.name = name;
 		this.creator = creator;
 		this.sections = new Section[sections]; // TODO: sections may be too little or too big
@@ -27,7 +27,7 @@ public class Document {
 		// creating sections
 		for (int i = 1; i <= sections; i++) {
 			this.sections[i - 1] = new Section();
-			path = "docs" + File.separator + creatorName + File.separator + name + File.separator + name + "_" + i + ".txt";
+			path = "docs" + File.separator + creatorName + File.separator + name + File.separator + name + "_" + i;
 			f = new File(path);
 			if (!f.createNewFile())
 				throw new IOException("createNewFile " + path + " failed");

@@ -3,13 +3,12 @@ package turing.client;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.text.NumberFormatter;
-
-import static java.lang.System.out;
 
 /**
  * Implements the turing client Graphical User Interface.
@@ -28,9 +27,16 @@ public class ClientGUI extends JFrame {
 	 * Creates the Graphical User Interface.
 	 */
 	public ClientGUI() {
-		super("turing");
+		super("Turing");
 
-		connection = new Connection(Client.ADDRESS);
+		// try to connect with the server
+		try {
+			connection = new Connection(Client.DEFAULT_ADDRESS, Client.BACKGROUND_ADDRESS);
+		} catch (IOException e) {
+			e.printStackTrace();
+			JOptionPane.showMessageDialog(Client.frame, "Can't connect to the server");
+			System.exit(0);
+		}
 		documents = new ArrayList<>();
 
 		int width = (int) (screen.width * 0.3);
@@ -127,8 +133,8 @@ public class ClientGUI extends JFrame {
 		buttonsPanel.add(inviteButton);
 		buttonsPanel.add(refreshButton);
 		createDocumentButton.addActionListener(event -> createDocument());
-		//showDocumentButton.addActionListener(event -> createDocument());
-		//showSectionButton.addActionListener(event -> createDocument());
+		//showDocumentButton.addActionListener(event -> showDocument());
+		//showSectionButton.addActionListener(event -> showSection());
 		editSectionButton.addActionListener(event -> connection.editSection(lastSelectedSection));
 
 		// sectionsPanel
@@ -236,4 +242,9 @@ public class ClientGUI extends JFrame {
 		JOptionPane.showMessageDialog(Client.frame, message + e.getMessage(),
 				"Error", JOptionPane.ERROR_MESSAGE);
 	}
+
+	/**
+	 * TO DO
+	 */
+	public Document getLastSelectedDocument() { return lastSelectedDocument; }
 }

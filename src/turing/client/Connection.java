@@ -17,24 +17,21 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 
 public class Connection {
-	public Socket socket;
-	public BufferedWriter writer = null;
-	public BufferedReader reader = null;
+	public BufferedWriter writer;
+	public BufferedReader reader, backgroundReader;
 
 	/**
 	 * Initializes the connection with the server
 	 */
-	public Connection(InetSocketAddress address) {
-		socket = new Socket();
-		try {
-			socket.connect(address);
-			writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8));
-			reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
-		} catch (IOException e) {
-			e.printStackTrace();
-			JOptionPane.showMessageDialog(Client.frame, "Can't connect to the server");
-			System.exit(0);
-		}
+	public Connection(InetSocketAddress defaultAddress, InetSocketAddress backgroundAddress) throws IOException {
+		Socket defaultConnection = new Socket();
+		Socket backgroundConnection = new Socket();
+		defaultConnection.connect(defaultAddress);
+		backgroundConnection.connect(backgroundAddress);
+		writer = new BufferedWriter(new OutputStreamWriter(defaultConnection.getOutputStream(), StandardCharsets.UTF_8));
+		reader = new BufferedReader(new InputStreamReader(defaultConnection.getInputStream(), StandardCharsets.UTF_8));
+		backgroundReader = new BufferedReader(new InputStreamReader(backgroundConnection.getInputStream(), StandardCharsets.UTF_8));
+		new Thread(new BackgroundListener(backgroundReader)).start();
 	}
 
 	/**
@@ -83,17 +80,17 @@ public class Connection {
 			writer.newLine();
 			writer.flush();
 			jsonString = reader.readLine();
-		} catch (Exception e) {
+		} catch (IOException e) {
 			Client.frame.showErrorDialog("Communication error", e);
 			return;
 		}
 
 		JSONObject reply = new JSONObject(jsonString);
-		if (reply.get(Fields.STATUS).equals(Fields.STATUS_OK)) {
+		if (reply.get(Fields.STATUS).equals(Fields.STATUS_OK)) { // logged successfully
 			Client.frame.createWorkspace();
 
-			if (reply.has(Fields.INCOMING)) {
-				int incoming = (Integer) reply.get(Fields.INCOMING);
+			if (reply.has(Fields.INCOMING_MESSAGES)) {
+				int incoming = (Integer) reply.get(Fields.INCOMING_MESSAGES);
 				// download table data
 				for (int i = 0; i < incoming; i++) {
 					try {
@@ -114,11 +111,11 @@ public class Connection {
 	 * TO DO
 	 */
 	public void createDocument(String documentName, int sections) {
-		JSONObject json = new JSONObject();
-		json.put(Fields.OPERATION, Fields.OPERATION_CREATE_DOC);
-		json.put(Fields.DOC_NAME, documentName);
-		json.put(Fields.SECTIONS, sections);
-		json.write(writer);
+		JSONObject req = new JSONObject();
+		req.put(Fields.OPERATION, Fields.OPERATION_CREATE_DOC);
+		req.put(Fields.DOCUMENT_NAME, documentName);
+		req.put(Fields.NUMBER_OF_SECTIONS, sections);
+		req.write(writer);
 
 		// send message
 		try {
@@ -152,6 +149,20 @@ public class Connection {
 		if (index < 0) {
 			JOptionPane.showMessageDialog(Client.frame, "Select a section");
 			return;
+		}
+		Document doc = Client.frame.getLastSelectedDocument();
+		JSONObject req = new JSONObject();
+		req.put(Fields.OPERATION, Fields.OPERATION_EDIT_SECTION);
+		req.put(Fields.DOCUMENT_NAME, doc.getName());
+		req.put(Fields.DOCUMENT_CREATOR, doc.getCreator());
+		req.put(Fields.DOCUMENT_SECTION, index + 1);
+
+		req.write(writer);
+		try {
+			writer.newLine();
+			writer.flush();
+		} catch (IOException e) {
+			Client.frame.showErrorDialog("Can't edit document", e);
 		}
 		JOptionPane.showMessageDialog(Client.frame, index);
 	}

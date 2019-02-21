@@ -1,8 +1,12 @@
 package turing.server;
 
+import org.json.JSONObject;
+
 import java.io.BufferedWriter;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * Contains user information.
@@ -12,9 +16,9 @@ public class User {
 	private String password;
 	private List<Document> myDocuments;
 	private List<Document> sharedDocuments;
-	// Pending notifications
+	private Queue<JSONObject> pendingNotifications;
 	private boolean online;
-	public BufferedWriter writer;
+	public BufferedWriter backgroundWriter; // to send notifications
 
 	/**
 	 * Creates a new user.
@@ -22,9 +26,11 @@ public class User {
 	public User(String username, String password) {
 		this.username = username;
 		this.password = password;
-		myDocuments = new LinkedList<>();
-		sharedDocuments = new LinkedList<>();
+		this.myDocuments = new LinkedList<>();
+		this.sharedDocuments = new LinkedList<>();
+		this.pendingNotifications = new ConcurrentLinkedQueue<>();
 		this.online = false;
+		this.backgroundWriter = null;
 	}
 
 	public String getUsername() {
