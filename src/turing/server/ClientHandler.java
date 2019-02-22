@@ -17,7 +17,6 @@ public class ClientHandler implements Runnable {
 	private User currentUser = null;
 	private BufferedWriter writer, backgroundWriter;
 
-
 	/**
 	 * TO DO
 	 */
@@ -61,7 +60,8 @@ public class ClientHandler implements Runnable {
 				break;
 			}
 
-			if (reqString == null) { // client disconnected
+			// client disconnected
+			if (reqString == null) {
 				if (currentUser != null) {
 					currentUser.setOnline(false);
 					currentUser.backgroundWriter = null;
@@ -79,12 +79,12 @@ public class ClientHandler implements Runnable {
 				break;
 			}
 
-			// HYPOTHESIS: messages are well formed
+			// TODO: validate messages structure
 			JSONObject req = new JSONObject(reqString);
 			try {
 				handleOperation(req);
 			} catch (IOException e) {
-				e.printStackTrace(); // TODO: specify problem?
+				e.printStackTrace(); // TODO: specify problem
 			}
 		}
 
@@ -108,11 +108,9 @@ public class ClientHandler implements Runnable {
 	private void sendMessage(String status) throws IOException {
 		JSONObject message = new JSONObject();
 		message.put(Fields.STATUS, status);
-		synchronized (writer) {
-			message.write(writer);
-			writer.newLine();
-			writer.flush();
-		}
+		message.write(writer);
+		writer.newLine();
+		writer.flush();
 	}
 
 	/**
@@ -121,72 +119,88 @@ public class ClientHandler implements Runnable {
 	private void handleOperation(JSONObject req) throws IOException {
 		switch ((String) req.get(Fields.OPERATION)) {
 		case Fields.OPERATION_LOGIN:
-			boolean success = userManager.logIn((String) req.get(Fields.USERNAME), (String) req.get(Fields.PASSWORD));
-			if (success) {
-				currentUser = userManager.getUser((String) req.get(Fields.USERNAME));
-				currentUser.backgroundWriter = backgroundWriter;
-
-				List<Document> myDocs = currentUser.getMyDocuments();
-				List<Document> sharedDocs = currentUser.getSharedDocuments();
-				JSONObject ack = new JSONObject();
-				ack.put(Fields.STATUS, Fields.STATUS_OK);
-				ack.put(Fields.INCOMING_MESSAGES, myDocs.size() + sharedDocs.size());
-
-				synchronized (writer) {
-					ack.write(writer);
-					writer.newLine();
-
-					// send documents info
-					// TODO: translate to "list" operation
-					for (Document myDoc : myDocs) {
-						JSONObject doc = new JSONObject();
-						doc.put("name", myDoc.getName());
-						doc.put("creator", myDoc.getCreator().getUsername());
-						doc.put("sections", myDoc.getSections().length);
-						doc.put("shared", "no");
-						doc.write(writer);
-						writer.newLine();
-					}
-					for (Document sharedDoc : sharedDocs) {
-						JSONObject doc = new JSONObject();
-						doc.put("name", sharedDoc.getName());
-						doc.put("creator", sharedDoc.getCreator().getUsername());
-						doc.put("sections", sharedDoc.getSections().length);
-						doc.put("shared", "yes");
-						doc.write(writer);
-						writer.newLine();
-					}
-					writer.flush();
-				}
-
-				// *** test
-				synchronized (backgroundWriter) {
-					backgroundWriter.write("send in background stream!");
-					backgroundWriter.newLine();
-					backgroundWriter.flush();
-				}
-				// *** test
-
-				out.println(Thread.currentThread() + " " + currentUser.getUsername() + " connected");
-			} else {
-				sendMessage(Fields.STATUS_ERR);
-				out.println(Thread.currentThread() + " can't connect " + req.get(Fields.USERNAME));
-			}
+			handleLogin(req);
 			break;
 
 		case Fields.OPERATION_CREATE_DOC:
-			String docName = (String) req.get(Fields.DOCUMENT_NAME);
-			int sections = (Integer) req.get(Fields.NUMBER_OF_SECTIONS);
-			Document doc;
-			// try {
-				doc = new Document(docName, currentUser, sections);
-			// } catch (MyException e) {
-				// sendMessage(writer, "err");
-				// return;
-			//}
-			currentUser.addMyDocument(doc);
-			sendMessage(Fields.STATUS_OK);
+			handleCreateDoc(req);
 			break;
+
+		case Fields.OPERATION_LIST:
+			handleList();
+			break;
+
+		default:
+			System.err.println("Operation " + req.get(Fields.OPERATION) + " unknown");
 		}
+	}
+
+	/**
+	 * TO DO
+	 */
+	private void handleLogin(JSONObject req) throws IOException {
+		boolean success = userManager.logIn((String) req.get(Fields.USERNAME), (String) req.get(Fields.PASSWORD));
+		if (success) {
+			currentUser = userManager.getUser((String) req.get(Fields.USERNAME));
+			currentUser.backgroundWriter = backgroundWriter;
+
+			JSONObject ack = new JSONObject();
+			ack.put(Fields.STATUS, Fields.STATUS_OK);
+			ack.put(Fields.INCOMING_MESSAGES, currentUser.getMyDocuments().size() + currentUser.getSharedDocuments().size());
+
+			ack.write(writer);
+			writer.newLine();
+			// send documents info
+			handleList();
+			out.println(Thread.currentThread() + " " + currentUser.getUsername() + " connected");
+		} else {
+			sendMessage(Fields.STATUS_ERR);
+			out.println(Thread.currentThread() + " can't connect " + req.get(Fields.USERNAME));
+		}
+	}
+
+	/**
+	 * TO DO
+	 */
+	private void handleCreateDoc(JSONObject req) throws IOException {
+		String docName = (String) req.get(Fields.DOCUMENT_NAME);
+		int sections = (Integer) req.get(Fields.NUMBER_OF_SECTIONS);
+		Document newDoc;
+		// try {
+			newDoc = new Document(docName, currentUser, sections);
+		// } catch (SomeDocumentException e) { // TODO
+		// sendMessage(writer, "err");
+		// return;
+		//}
+		currentUser.addMyDocument(newDoc);
+		sendMessage(Fields.STATUS_OK);
+	}
+
+	/**
+	 * TO DO
+	 */
+	private void handleList() throws IOException {
+		List<Document> myDocs = currentUser.getMyDocuments();
+		List<Document> sharedDocs = currentUser.getSharedDocuments();
+		// send incoming messages
+		for (Document myDoc : myDocs) {
+			JSONObject doc = new JSONObject();
+			doc.put("name", myDoc.getName());
+			doc.put("creator", myDoc.getCreator().getUsername());
+			doc.put("sections", myDoc.getSections().length);
+			doc.put("shared", "no");
+			doc.write(writer);
+			writer.newLine();
+		}
+		for (Document sharedDoc : sharedDocs) {
+			JSONObject doc = new JSONObject();
+			doc.put("name", sharedDoc.getName());
+			doc.put("creator", sharedDoc.getCreator().getUsername());
+			doc.put("sections", sharedDoc.getSections().length);
+			doc.put("shared", "yes");
+			doc.write(writer);
+			writer.newLine();
+		}
+		writer.flush();
 	}
 }

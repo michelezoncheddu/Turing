@@ -85,6 +85,7 @@ public class ClientGUI extends JFrame {
 		setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 		setVisible(true);
 
+		// prompt to confirm program closing
 		addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent e) {
 				if (JOptionPane.showConfirmDialog(null, "Close turing?", "Quit",
@@ -141,7 +142,9 @@ public class ClientGUI extends JFrame {
 		String[] sectionsTableColumns = new String[] {"N°", "Field 2", "Field 3"};
 		sectionsTableModel = new DefaultTableModel(sectionsTableColumns, 0);
 		JTable sectionsTable = new JTable(sectionsTableModel);
-		sectionsTable.setDefaultEditor(Object.class, null);
+		sectionsTable.setDefaultEditor(Object.class, null); // set table not editalbe
+		sectionsTable.getTableHeader().setReorderingAllowed(false); // block column ordering
+		sectionsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION); // force to select only one row
 		sectionsTable.getSelectionModel().addListSelectionListener(event -> {
 			if (event.getValueIsAdjusting())
 				lastSelectedSection = sectionsTable.getSelectedRow();
@@ -152,7 +155,9 @@ public class ClientGUI extends JFrame {
 		String[] documentsTableColumns = new String[] {"Name", "Creator", "Active users", "Shared"};
 		documentsTableModel = new DefaultTableModel(documentsTableColumns, 0);
 		JTable documentsTable = new JTable(documentsTableModel);
-		documentsTable.setDefaultEditor(Object.class, null);
+		documentsTable.setDefaultEditor(Object.class, null); // set table not editalbe
+		documentsTable.getTableHeader().setReorderingAllowed(false); // block column ordering
+		documentsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION); // force to select only one row
 		documentsTable.getSelectionModel().addListSelectionListener(event -> {
 			if (event.getValueIsAdjusting())
 				updateSectionTable(documentsTable.getSelectedRow());

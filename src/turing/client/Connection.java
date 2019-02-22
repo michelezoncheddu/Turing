@@ -31,6 +31,8 @@ public class Connection {
 		writer = new BufferedWriter(new OutputStreamWriter(defaultConnection.getOutputStream(), StandardCharsets.UTF_8));
 		reader = new BufferedReader(new InputStreamReader(defaultConnection.getInputStream(), StandardCharsets.UTF_8));
 		backgroundReader = new BufferedReader(new InputStreamReader(backgroundConnection.getInputStream(), StandardCharsets.UTF_8));
+
+		// thread for background connection (async notifications from server)
 		new Thread(new BackgroundListener(backgroundReader)).start();
 	}
 

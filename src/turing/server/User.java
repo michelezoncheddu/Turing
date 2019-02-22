@@ -18,7 +18,7 @@ public class User {
 	private List<Document> sharedDocuments;
 	private Queue<JSONObject> pendingNotifications;
 	private boolean online;
-	public BufferedWriter backgroundWriter; // to send notifications
+	public BufferedWriter backgroundWriter; // to send notifications, USE WITH SYNCHRONIZED
 
 	/**
 	 * Creates a new user.
