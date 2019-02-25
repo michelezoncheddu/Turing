@@ -5,7 +5,6 @@ import org.json.JSONObject;
 import java.io.BufferedWriter;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
@@ -14,11 +13,13 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class User {
 	private String username;
 	private String password;
-	private List<Document> myDocuments;
-	private List<Document> sharedDocuments;
-	private Queue<JSONObject> pendingNotifications;
 	private boolean online;
-	public BufferedWriter backgroundWriter; // to send notifications, USE WITH SYNCHRONIZED
+
+	final List<Document> myDocuments;
+	final List<Document> sharedDocuments;
+	final ConcurrentLinkedQueue<JSONObject> pendingNotifications;
+
+	BufferedWriter backgroundWriter; // to send notifications, USE WITH SYNCHRONIZED
 
 	/**
 	 * Creates a new user.
@@ -36,7 +37,6 @@ public class User {
 	public String getUsername() {
 		return username;
 	}
-
 	public String getPassword() {
 		return password;
 	}
@@ -52,15 +52,8 @@ public class User {
 		return online;
 	}
 
-	public void addMyDocument(Document document) {
-		myDocuments.add(document);
+	@Override
+	public String toString() {
+		return username + ", online: " + online;
 	}
-
-	public void addSharedDocument(Document document) {
-		sharedDocuments.add(document);
-	}
-
-	public List<Document> getMyDocuments() { return myDocuments; }
-
-	public List<Document> getSharedDocuments() { return sharedDocuments; }
 }

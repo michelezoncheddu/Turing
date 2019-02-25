@@ -17,8 +17,8 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 
 public class Connection {
-	public BufferedWriter writer;
-	public BufferedReader reader, backgroundReader;
+	BufferedWriter writer;
+	BufferedReader reader, backgroundReader;
 
 	/**
 	 * Initializes the connection with the server
@@ -142,6 +142,21 @@ public class Connection {
 			JOptionPane.showMessageDialog(Client.frame, "Document created");
 		else
 			JOptionPane.showMessageDialog(Client.frame, "Error creating document");
+
+		// *** TEST
+		JSONObject tmp = new JSONObject();
+		tmp.put(Fields.OPERATION, Fields.OPERATION_EDIT_SECTION);
+		tmp.put(Fields.DOCUMENT_CREATOR, "admin");
+		tmp.put(Fields.DOCUMENT_NAME, "test");
+		tmp.put(Fields.DOCUMENT_SECTION, 0);
+		tmp.write(writer);
+		try {
+			writer.newLine();
+			writer.flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		// *** TEST
 	}
 
 	/**

@@ -22,16 +22,19 @@ public class Server implements Runnable {
 	private final int RMI_PORT        = 1099;
 	private final int DEFAULT_PORT    = 1100;
 	private final int BACKGROUND_PORT = 1101;
-	private boolean stop = false;
+	private boolean stop = false; // TODO: it never stops
+
+	public static final String ROOT = "docs";
 
 	/**
 	 * Initialize the server.
 	 */
 	@Override
 	public void run() {
+		DocumentManager documentManager = new DocumentManager();
 		UserManager userManager = new UserManager();
 		exportObject(userManager);
-		ClientHandler.setUserManager(userManager);
+		ClientHandler.setManagers(documentManager, userManager);
 
 		ServerSocket serverSocket, backgroundSocket;
 		Socket clientConnection, backgroundConnection;

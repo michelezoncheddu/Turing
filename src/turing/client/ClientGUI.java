@@ -18,7 +18,7 @@ public class ClientGUI extends JFrame {
 
 	private Connection connection;
 
-	public ArrayList<Document> documents;
+	ArrayList<Document> documents;
 	private DefaultTableModel documentsTableModel, sectionsTableModel;
 	private Document lastSelectedDocument = null;
 	private int lastSelectedSection = -1;
