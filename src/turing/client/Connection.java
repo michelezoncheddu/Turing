@@ -74,11 +74,11 @@ public class Connection {
 		json.put(Fields.OPERATION, Fields.OPERATION_LOGIN);
 		json.put(Fields.USERNAME, username);
 		json.put(Fields.PASSWORD, password);
-		json.write(writer);
 
 		// send login request and wait reply
 		String jsonString;
 		try {
+			json.write(writer);
 			writer.newLine();
 			writer.flush();
 			jsonString = reader.readLine();
@@ -90,22 +90,45 @@ public class Connection {
 		JSONObject reply = new JSONObject(jsonString);
 		if (reply.get(Fields.STATUS).equals(Fields.STATUS_OK)) { // logged successfully
 			Client.frame.createWorkspace();
+			list(); // download table data
+		} else
+			JOptionPane.showMessageDialog(Client.frame, "Inexistent user or wrong password"); // TODO: specify error
+	}
 
-			if (reply.has(Fields.INCOMING_MESSAGES)) {
-				int incoming = (Integer) reply.get(Fields.INCOMING_MESSAGES);
-				// download table data
-				for (int i = 0; i < incoming; i++) {
-					try {
-						jsonString = reader.readLine();
-					} catch (IOException e) {
-						Client.frame.showErrorDialog("Communication error", e);
-					}
-					JSONObject jsonDoc = new JSONObject(jsonString);
-					Document doc = new Document((String) jsonDoc.get("name"),
-							(String) jsonDoc.get("creator"), (Integer) jsonDoc.get("sections"));
-					Client.frame.addDocument(doc);
-				}
+	/**
+	 * TO DO
+	 */
+	public void list() {
+		JSONObject req = new JSONObject();
+		String jsonString;
+		req.put(Fields.OPERATION, Fields.OPERATION_LIST);
+
+		// send message and wait reply
+		try {
+			req.write(writer);
+			writer.newLine();
+			writer.flush();
+			jsonString = reader.readLine();
+		} catch (IOException e) {
+			Client.frame.showErrorDialog("Communication error", e);
+			return;
+		}
+
+		Client.frame.clearTables();
+		JSONObject msg = new JSONObject(jsonString);
+		int incoming = (Integer) msg.get(Fields.INCOMING_MESSAGES);
+
+		// download table data
+		for (int i = 0; i < incoming; i++) {
+			try {
+				jsonString = reader.readLine();
+			} catch (IOException e) {
+				Client.frame.showErrorDialog("Communication error", e);
 			}
+			JSONObject jsonDoc = new JSONObject(jsonString);
+			Document doc = new Document((String) jsonDoc.get("name"),
+					(String) jsonDoc.get("creator"), (Integer) jsonDoc.get("sections"));
+			Client.frame.addDocument(doc);
 		}
 	}
 
@@ -114,37 +137,29 @@ public class Connection {
 	 */
 	public void createDocument(String documentName, int sections) {
 		JSONObject req = new JSONObject();
+		String jsonString;
 		req.put(Fields.OPERATION, Fields.OPERATION_CREATE_DOC);
 		req.put(Fields.DOCUMENT_NAME, documentName);
 		req.put(Fields.NUMBER_OF_SECTIONS, sections);
-		req.write(writer);
 
-		// send message
+		// send message and wait reply
 		try {
+			req.write(writer);
 			writer.newLine();
 			writer.flush();
+			jsonString = reader.readLine();
 		} catch (IOException e) {
 			Client.frame.showErrorDialog("Communication error", e);
 			return;
 		}
-
-		// wait reply
-		String str;
-		try {
-			str = reader.readLine();
-		} catch (IOException e) {
-			Client.frame.showErrorDialog("Communication error", e);
-			return;
-		}
-
-		JSONObject reply = new JSONObject(str);
+		JSONObject reply = new JSONObject(jsonString);
 		if (reply.get(Fields.STATUS).equals(Fields.STATUS_OK))
-			JOptionPane.showMessageDialog(Client.frame, "Document created");
+			list(); // download table data
 		else
 			JOptionPane.showMessageDialog(Client.frame, "Error creating document");
 
 		// *** TEST
-		JSONObject tmp = new JSONObject();
+		/*JSONObject tmp = new JSONObject();
 		tmp.put(Fields.OPERATION, Fields.OPERATION_EDIT_SECTION);
 		tmp.put(Fields.DOCUMENT_CREATOR, "admin");
 		tmp.put(Fields.DOCUMENT_NAME, "test");
@@ -155,7 +170,7 @@ public class Connection {
 			writer.flush();
 		} catch (IOException e) {
 			e.printStackTrace();
-		}
+		}*/
 		// *** TEST
 	}
 
@@ -169,18 +184,22 @@ public class Connection {
 		}
 		Document doc = Client.frame.getLastSelectedDocument();
 		JSONObject req = new JSONObject();
+		String jsonString;
 		req.put(Fields.OPERATION, Fields.OPERATION_EDIT_SECTION);
 		req.put(Fields.DOCUMENT_NAME, doc.getName());
 		req.put(Fields.DOCUMENT_CREATOR, doc.getCreator());
 		req.put(Fields.DOCUMENT_SECTION, index + 1);
 
-		req.write(writer);
+		// send request and wait reply
 		try {
+			req.write(writer);
 			writer.newLine();
 			writer.flush();
+			jsonString = reader.readLine();
 		} catch (IOException e) {
-			Client.frame.showErrorDialog("Can't edit document", e);
+			Client.frame.showErrorDialog("Communication error", e);
+			return;
 		}
-		JOptionPane.showMessageDialog(Client.frame, index);
+		JOptionPane.showMessageDialog(Client.frame, index + 1);
 	}
 }

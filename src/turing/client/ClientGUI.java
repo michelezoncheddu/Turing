@@ -71,8 +71,8 @@ public class ClientGUI extends JFrame {
 		// buttonsPanel
 		JButton signupButton = new JButton("Sign up");
 		JButton loginButton = new JButton("Log in");
-		signupButton.addActionListener(event -> connection.signUp(usernameField.getText(), passwordField.getText()));
-		loginButton.addActionListener(event -> connection.logIn(usernameField.getText(), passwordField.getText()));
+		signupButton.addActionListener(event -> connection.signUp(usernameField.getText().trim(), passwordField.getText()));
+		loginButton.addActionListener(event -> connection.logIn(usernameField.getText().trim(), passwordField.getText()));
 		buttonsPanel.add(signupButton);
 		buttonsPanel.add(loginButton);
 
@@ -137,6 +137,9 @@ public class ClientGUI extends JFrame {
 		//showDocumentButton.addActionListener(event -> showDocument());
 		//showSectionButton.addActionListener(event -> showSection());
 		editSectionButton.addActionListener(event -> connection.editSection(lastSelectedSection));
+		//endEditButton.addActionListener(event -> foo());
+		//inviteButton.addActionListener(event -> bar());
+		refreshButton.addActionListener(event -> connection.list());
 
 		// sectionsPanel
 		String[] sectionsTableColumns = new String[] {"N°", "Field 2", "Field 3"};
@@ -212,9 +215,10 @@ public class ClientGUI extends JFrame {
 		String documentName = documentNameField.getText();
 		Integer sections = (Integer) sectionsField.getValue();
 
-		if (documentName.isBlank() || sections == null) // TODO: errorDialog
+		if (documentName.isBlank() || sections == null) {
+			JOptionPane.showMessageDialog(Client.frame, "You must compile all fields");
 			return;
-
+		}
 		connection.createDocument(documentName, sections);
 	}
 
@@ -252,4 +256,14 @@ public class ClientGUI extends JFrame {
 	 * TO DO
 	 */
 	public Document getLastSelectedDocument() { return lastSelectedDocument; }
+
+	/**
+	 * TO DO
+	 */
+	public void clearTables() {
+		documentsTableModel.setRowCount(0);
+		sectionsTableModel.setRowCount(0);
+		lastSelectedDocument = null;
+		lastSelectedSection = -1;
+	}
 }

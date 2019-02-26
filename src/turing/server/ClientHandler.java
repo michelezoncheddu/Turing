@@ -130,7 +130,7 @@ public class ClientHandler implements Runnable {
 			break;
 
 		case Fields.OPERATION_LIST:
-			// TODO: handleList(null, null); // in a synchronized block
+			handleList();
 			break;
 
 		case Fields.OPERATION_EDIT_SECTION:
@@ -154,15 +154,7 @@ public class ClientHandler implements Runnable {
 			currentUser = userManager.getUser(username);
 			currentUser.backgroundWriter = backgroundWriter;
 
-			JSONObject ack = new JSONObject();
-			ack.put(Fields.STATUS, Fields.STATUS_OK);
-
-			synchronized (currentUser.sharedDocuments) {
-				ack.put(Fields.INCOMING_MESSAGES, currentUser.myDocuments.size() + currentUser.sharedDocuments.size());
-				ack.write(writer);
-				writer.newLine();
-				handleList(currentUser.myDocuments, currentUser.sharedDocuments); // send documents info
-			}
+			sendStatusMessage(Fields.STATUS_OK);
 			out.println(Thread.currentThread() + " " + currentUser.getUsername() + " connected");
 		} else {
 			sendStatusMessage(Fields.STATUS_ERR);
@@ -191,24 +183,31 @@ public class ClientHandler implements Runnable {
 	/**
 	 * TO DO
 	 */
-	private void handleList(List<Document> myDocs, List<Document> sharedDocs) throws IOException {
-		for (Document myDoc : myDocs) {
-			JSONObject doc = new JSONObject();
-			doc.put("name", myDoc.getName());
-			doc.put("creator", myDoc.getCreator().getUsername());
-			doc.put("sections", myDoc.getNumberOfSections());
-			doc.put("shared", "no");
-			doc.write(writer);
+	private void handleList() throws IOException {
+		JSONObject msg = new JSONObject();
+
+		synchronized (currentUser.sharedDocuments) {
+			msg.put(Fields.INCOMING_MESSAGES, currentUser.myDocuments.size() + currentUser.sharedDocuments.size());
+			msg.write(writer);
 			writer.newLine();
-		}
-		for (Document sharedDoc : sharedDocs) {
-			JSONObject doc = new JSONObject();
-			doc.put("name", sharedDoc.getName());
-			doc.put("creator", sharedDoc.getCreator().getUsername());
-			doc.put("sections", sharedDoc.getNumberOfSections());
-			doc.put("shared", "yes");
-			doc.write(writer);
-			writer.newLine();
+			for (Document myDoc : currentUser.myDocuments) {
+				JSONObject doc = new JSONObject();
+				doc.put("name", myDoc.getName());
+				doc.put("creator", myDoc.getCreator().getUsername());
+				doc.put("sections", myDoc.getNumberOfSections());
+				doc.put("shared", "no");
+				doc.write(writer);
+				writer.newLine();
+			}
+			for (Document sharedDoc : currentUser.sharedDocuments) {
+				JSONObject doc = new JSONObject();
+				doc.put("name", sharedDoc.getName());
+				doc.put("creator", sharedDoc.getCreator().getUsername());
+				doc.put("sections", sharedDoc.getNumberOfSections());
+				doc.put("shared", "yes");
+				doc.write(writer);
+				writer.newLine();
+			}
 		}
 		writer.flush();
 	}
