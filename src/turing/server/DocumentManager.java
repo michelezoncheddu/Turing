@@ -23,13 +23,13 @@ public class DocumentManager {
 			throws UserNotAllowedException, InexistentDocumentException {
 		Document document = documents.get(createKey(creator, docName));
 		if (document == null)
-			throw new InexistentDocumentException();
+			throw new InexistentDocumentException(docName);
 
 		// check permissions
 		if (document.isEditableBy(user))
 			return document;
 		else
-			throw new UserNotAllowedException();
+			throw new UserNotAllowedException(user.getUsername());
 	}
 
 	/**

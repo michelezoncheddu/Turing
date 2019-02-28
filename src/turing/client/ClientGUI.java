@@ -18,7 +18,7 @@ public class ClientGUI extends JFrame {
 
 	private Connection connection;
 
-	ArrayList<Document> documents;
+	private ArrayList<Document> documents;
 	private DefaultTableModel documentsTableModel, sectionsTableModel;
 	private Document lastSelectedDocument = null;
 	private int lastSelectedSection = -1;
@@ -35,8 +35,9 @@ public class ClientGUI extends JFrame {
 		} catch (IOException e) {
 			e.printStackTrace();
 			JOptionPane.showMessageDialog(Client.frame, "Can't connect to the server");
-			System.exit(0);
+			//System.exit(0);
 		}
+
 		documents = new ArrayList<>();
 
 		int width = (int) (screen.width * 0.3);
@@ -96,7 +97,7 @@ public class ClientGUI extends JFrame {
 	}
 
 	/**
-	 * TO DO
+	 * Creates the workspace window
 	 */
 	public void createWorkspace() {
 		setVisible(false);
@@ -111,26 +112,22 @@ public class ClientGUI extends JFrame {
 		JPanel centerPanel = new JPanel();
 		JPanel documentsPanel = new JPanel();
 		JPanel sectionsPanel = new JPanel();
-		JPanel chatPanel = new JPanel();
 		buttonsPanel.setLayout(new BoxLayout(buttonsPanel, BoxLayout.Y_AXIS));
 		centerPanel.setLayout(new GridLayout(2, 1, 0, 10));
 		documentsPanel.setLayout(new BorderLayout());
 		sectionsPanel.setLayout(new BorderLayout());
-		chatPanel.setLayout(new BorderLayout());
 
 		// buttonsPanel
 		JButton createDocumentButton = new JButton("Create document");
 		JButton showDocumentButton = new JButton("Show document");
 		JButton showSectionButton = new JButton("Show section");
 		JButton editSectionButton = new JButton("Edit section");
-		JButton endEditButton = new JButton("End edit");
 		JButton inviteButton = new JButton("Invite");
 		JButton refreshButton = new JButton("Refresh");
 		buttonsPanel.add(createDocumentButton);
 		buttonsPanel.add(showDocumentButton);
 		buttonsPanel.add(showSectionButton);
 		buttonsPanel.add(editSectionButton);
-		buttonsPanel.add(endEditButton);
 		buttonsPanel.add(inviteButton);
 		buttonsPanel.add(refreshButton);
 		createDocumentButton.addActionListener(event -> createDocument());
@@ -172,6 +169,33 @@ public class ClientGUI extends JFrame {
 		centerPanel.add(documentsPanel);
 		centerPanel.add(sectionsPanel);
 
+		// workspace
+		add(buttonsPanel, BorderLayout.WEST);
+		add(centerPanel, BorderLayout.CENTER);
+		setVisible(true);
+	}
+
+	/**
+	 * TO DO
+	 */
+	public void createEditingSpace() {
+		setVisible(false);
+		getContentPane().removeAll();
+		setLayout(new BorderLayout());
+
+		// panels
+		JPanel buttonsPanel = new JPanel();
+		JPanel editingPanel = new JPanel();
+		JPanel chatPanel = new JPanel();
+		buttonsPanel.setLayout(new BoxLayout(buttonsPanel, BoxLayout.Y_AXIS));
+		chatPanel.setLayout(new BorderLayout());
+
+		// buttonsPanel
+		JButton saveFileButton = new JButton("Save file");
+		JButton discardChangesButton = new JButton("Discard changes");
+		buttonsPanel.add(saveFileButton);
+		buttonsPanel.add(discardChangesButton);
+
 		// chatPanel
 		JTextArea chatArea = new JTextArea("No messages", 30, 24);
 		JTextField chatField = new JTextField("Write here");
@@ -181,9 +205,8 @@ public class ClientGUI extends JFrame {
 		chatPanel.add(chatField, BorderLayout.CENTER);
 		chatPanel.add(sendButton, BorderLayout.SOUTH);
 
-		// workspace
 		add(buttonsPanel, BorderLayout.WEST);
-		add(centerPanel, BorderLayout.CENTER);
+		add(editingPanel, BorderLayout.CENTER);
 		add(chatPanel, BorderLayout.EAST);
 		setVisible(true);
 	}
@@ -264,6 +287,7 @@ public class ClientGUI extends JFrame {
 		documentsTableModel.setRowCount(0);
 		sectionsTableModel.setRowCount(0);
 		lastSelectedDocument = null;
+		documents.clear();
 		lastSelectedSection = -1;
 	}
 }

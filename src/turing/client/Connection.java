@@ -16,6 +16,9 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 
+/**
+ * Implements the connection with the server
+ */
 public class Connection {
 	BufferedWriter writer;
 	BufferedReader reader, backgroundReader;
@@ -37,7 +40,7 @@ public class Connection {
 	}
 
 	/**
-	 * TO DO
+	 * Performs the sign up function
 	 */
 	public void signUp(String username, String password) {
 		if (username.isBlank() || password.isBlank())
@@ -63,7 +66,7 @@ public class Connection {
 	}
 
 	/**
-	 * TO DO
+	 * Performs the log in function
 	 */
 	public void logIn(String username, String password) {
 		if (username.isBlank() || password.isBlank())
@@ -115,6 +118,7 @@ public class Connection {
 		}
 
 		Client.frame.clearTables();
+
 		JSONObject msg = new JSONObject(jsonString);
 		int incoming = (Integer) msg.get(Fields.INCOMING_MESSAGES);
 

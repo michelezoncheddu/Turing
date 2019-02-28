@@ -1,5 +1,7 @@
 package turing.server;
 
+import turing.server.exceptions.PreExistentDocumentException;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -15,7 +17,7 @@ public class Document {
 	/**
 	 * TO DO
 	 */
-	public Document(String name, User creator, int sections) throws IOException {
+	public Document(String name, User creator, int sections) throws IOException, PreExistentDocumentException {
 		this.name = name;
 		this.creator = creator;
 		this.sections = new Section[sections]; // TODO: sections may be too little or too big
@@ -24,8 +26,10 @@ public class Document {
 
 		// creating directory
 		String dirPath = Server.ROOT + File.separator + creatorName + File.separator + name;
-		File f = new File(dirPath);
-		if (!f.mkdirs())
+		File file = new File(dirPath);
+		if (file.exists())
+			throw new PreExistentDocumentException(dirPath);
+		if (!file.mkdirs())
 			throw new IOException("mkdirs " + dirPath + " failed");
 
 		// creating sections
@@ -33,8 +37,8 @@ public class Document {
 		for (int i = 1; i <= sections; i++) {
 			sectionPath = dirPath + File.separator + i;
 			this.sections[i - 1] = new Section(sectionPath);
-			f = new File(sectionPath);
-			if (!f.createNewFile())
+			file = new File(sectionPath);
+			if (!file.createNewFile())
 				throw new IOException("createNewFile " + sectionPath + " failed");
 		}
 	}

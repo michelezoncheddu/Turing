@@ -4,6 +4,7 @@ import turing.Fields;
 
 import org.json.JSONObject;
 import turing.server.exceptions.InexistentDocumentException;
+import turing.server.exceptions.PreExistentDocumentException;
 import turing.server.exceptions.UserNotAllowedException;
 
 import java.io.*;
@@ -169,12 +170,12 @@ public class ClientHandler implements Runnable {
 		String docName = (String) req.get(Fields.DOCUMENT_NAME);
 		int sections = (Integer) req.get(Fields.NUMBER_OF_SECTIONS);
 		Document newDoc;
-		// try {
+		try {
 			newDoc = new Document(docName, currentUser, sections);
-		// } catch (SomeDocumentException e) { // TODO
-		//  sendMessage(writer, "err");
-		//  return;
-		// }
+		} catch (PreExistentDocumentException e) {
+			sendStatusMessage(Fields.STATUS_ERR);
+			return;
+		}
 		currentUser.myDocuments.add(newDoc);
 		documentManager.add(newDoc);
 		sendStatusMessage(Fields.STATUS_OK);
