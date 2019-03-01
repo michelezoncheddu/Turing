@@ -1,7 +1,7 @@
 package turing.client;
 
-import turing.CallbackHelloClientInterface;
-import turing.CallbackHelloServerInterface;
+import turing.ClientNotificationManagerAPI;
+import turing.ServerNotificationManagerAPI;
 
 import java.awt.*;
 import java.awt.event.WindowAdapter;
@@ -36,13 +36,12 @@ public class ClientGUI extends JFrame {
 		super("Turing");
 
 		// BEGIN TEST
-		String name = "CallbackHelloServer";
 		try {
-			Registry registry = LocateRegistry.getRegistry("localhost", 2048);
-			CallbackHelloServerInterface h = (CallbackHelloServerInterface) registry.lookup(name);
-			CallbackHelloClientImpl callbackObj = new CallbackHelloClientImpl();
-			CallbackHelloClientInterface stub = (CallbackHelloClientInterface) UnicastRemoteObject.exportObject(callbackObj, 0);
-			h.registerForCallback(stub);
+			Registry registry = LocateRegistry.getRegistry(Client.HOST);
+			ServerNotificationManagerAPI aaa = (ServerNotificationManagerAPI) registry.lookup(Client.NOTIFICATION_OBJECT);
+			ClientNotificationManager listener = new ClientNotificationManager();
+			ClientNotificationManagerAPI stub = (ClientNotificationManagerAPI) UnicastRemoteObject.exportObject(listener, 0);
+			aaa.registerForCallback(stub);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -50,7 +49,7 @@ public class ClientGUI extends JFrame {
 
 		// try to connect with the server
 		try {
-			connection = new Connection(Client.DEFAULT_ADDRESS, Client.BACKGROUND_ADDRESS);
+			connection = new Connection(Client.DEFAULT_ADDRESS);
 		} catch (IOException e) {
 			e.printStackTrace();
 			JOptionPane.showMessageDialog(Client.frame, "Can't connect to the server");

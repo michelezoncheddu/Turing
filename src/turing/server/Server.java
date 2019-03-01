@@ -1,12 +1,11 @@
 package turing.server;
 
-import turing.CallbackHelloServerInterface;
+import turing.ServerNotificationManagerAPI;
 import turing.UserManagerAPI;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.rmi.*;
 import java.rmi.registry.*;
 import java.rmi.server.*;
 import java.util.concurrent.Executors;
@@ -19,46 +18,33 @@ import static java.lang.System.out;
  * Implements the turing server.
  */
 public class Server implements Runnable {
-	private final String SERVER_NAME = "TURING_SERVER";
-	private final int RMI_PORT        = 1099;
-	private final int DEFAULT_PORT    = 1100;
-	private final int BACKGROUND_PORT = 1101;
-	private boolean stop = false; // TODO: it never stops
+	private final String REGISTRATION_OBJECT = "reg";
+	private final String NOTIFICATION_OBJECT = "not";
+	private final int    RMI_PORT            = 1099;
+	private final int    DEFAULT_PORT        = 1100;
+	private boolean      stop                = false; // TODO: it never stops
 
-	public static final String ROOT = "docs";
+	public static final String ROOT = "docs"; // TODO: change name
 
 	/**
 	 * Initialize the server.
 	 */
 	@Override
 	public void run() {
-
-		// BEGIN TEST
-		try {
-			CallbackHelloServerImpl server = new CallbackHelloServerImpl();
-			CallbackHelloServerInterface stub = (CallbackHelloServerInterface) UnicastRemoteObject.exportObject(server, 39000);
-			String name = "CallbackHelloServer";
-			Registry registry = LocateRegistry.createRegistry(2048);
-			registry.bind(name, stub);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		// END TEST
-
 		DocumentManager documentManager = new DocumentManager();
 		UserManager userManager = new UserManager();
-		exportObject(userManager);
+		ServerNotificationManager notificationManager = new ServerNotificationManager();
+		exportObjects(userManager, notificationManager);
 		ClientHandler.setManagers(documentManager, userManager);
 
-		ServerSocket serverSocket, backgroundSocket;
-		Socket clientConnection, backgroundConnection;
+		ServerSocket serverSocket;
+		Socket clientConnection;
 
 		// initialize the thread pool
 		ThreadPoolExecutor threadPool = (ThreadPoolExecutor) Executors.newCachedThreadPool();
 
 		try {
 			serverSocket = new ServerSocket(DEFAULT_PORT);
-			backgroundSocket = new ServerSocket(BACKGROUND_PORT);
 		} catch (IOException e) {
 			e.printStackTrace();
 			return;
@@ -70,20 +56,18 @@ public class Server implements Runnable {
 		while (!stop) {
 			try {
 				clientConnection = serverSocket.accept();
-				backgroundConnection = backgroundSocket.accept();
 			} catch (IOException e) {
 				if (stop)
 					break;
 				throw new RuntimeException("Error accepting client connection", e);
 			}
-			threadPool.execute(new ClientHandler(clientConnection, backgroundConnection));
+			threadPool.execute(new ClientHandler(clientConnection));
 		}
 		out.println("Server stopped");
 
 		// closing defaultConnection
 		try {
 			serverSocket.close();
-			backgroundSocket.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -100,16 +84,20 @@ public class Server implements Runnable {
 	/**
 	 * Exports the remote object.
 	 */
-	private void exportObject(UserManagerAPI remote) {
+	private void exportObjects(UserManagerAPI userManager, ServerNotificationManagerAPI notificationManager) {
 		try {
-			// exporting the object
-			UserManagerAPI stub = (UserManagerAPI) UnicastRemoteObject.exportObject(remote, 0);
+			// exporting objects
+			UserManagerAPI userManagerStub =
+					(UserManagerAPI) UnicastRemoteObject.exportObject(userManager, 0);
+			ServerNotificationManagerAPI notificationStub =
+					(ServerNotificationManagerAPI) UnicastRemoteObject.exportObject(notificationManager, 0);
 
-			// publishing the stub into the registry
-			LocateRegistry.createRegistry(RMI_PORT);
-			Registry r = LocateRegistry.getRegistry(RMI_PORT);
-			r.rebind(SERVER_NAME, stub);
-		} catch (RemoteException e) {
+			Registry registry = LocateRegistry.createRegistry(RMI_PORT);
+
+			// publishing the stubs into the registry
+			registry.bind(REGISTRATION_OBJECT, userManagerStub);
+			registry.bind(NOTIFICATION_OBJECT, notificationStub);
+		} catch (Exception e) { // TODO: generic Exception
 			e.printStackTrace(); // TODO: System.exit?
 		}
 	}

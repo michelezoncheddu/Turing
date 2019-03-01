@@ -26,11 +26,9 @@ public class Connection {
 	/**
 	 * Initializes the connection with the server
 	 */
-	public Connection(InetSocketAddress defaultAddress, InetSocketAddress backgroundAddress) throws IOException {
+	public Connection(InetSocketAddress defaultAddress) throws IOException {
 		Socket defaultConnection = new Socket();
-		Socket backgroundConnection = new Socket();
 		defaultConnection.connect(defaultAddress);
-		backgroundConnection.connect(backgroundAddress);
 		writer = new BufferedWriter(new OutputStreamWriter(defaultConnection.getOutputStream(), StandardCharsets.UTF_8));
 		reader = new BufferedReader(new InputStreamReader(defaultConnection.getInputStream(), StandardCharsets.UTF_8));
 	}
@@ -45,8 +43,8 @@ public class Connection {
 		UserManagerAPI serverObject;
 		Remote remoteObject;
 		try {
-			Registry r = LocateRegistry.getRegistry();
-			remoteObject = r.lookup(Client.SERVER_NAME);
+			Registry registry = LocateRegistry.getRegistry(Client.HOST);
+			remoteObject = registry.lookup(Client.REGISTRATION_OBJECT);
 			serverObject = (UserManagerAPI) remoteObject;
 			boolean success = serverObject.signUp(username, password);
 			if (success)

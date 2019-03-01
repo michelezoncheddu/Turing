@@ -16,16 +16,15 @@ import static java.lang.System.out;
 public class ClientHandler implements Runnable {
 	private static DocumentManager documentManager;
 	private static UserManager userManager;
-	private Socket clientConnection, backgroundConnection;
+	private Socket clientConnection;
 	private User currentUser = null;
 	private BufferedWriter writer;
 
 	/**
 	 * TO DO
 	 */
-	public ClientHandler(Socket clientConnection, Socket backgroundConnection) {
+	public ClientHandler(Socket clientConnection) {
 		this.clientConnection = clientConnection;
-		this.backgroundConnection = backgroundConnection;
 	}
 
 	/**
@@ -72,7 +71,6 @@ public class ClientHandler implements Runnable {
 					reader.close();
 					writer.close();
 					clientConnection.close();
-					backgroundConnection.close();
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
@@ -94,7 +92,6 @@ public class ClientHandler implements Runnable {
 			reader.close();
 			writer.close();
 			clientConnection.close();
-			backgroundConnection.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		} finally {

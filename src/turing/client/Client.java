@@ -4,12 +4,11 @@ import javax.swing.*;
 import java.net.InetSocketAddress;
 
 public class Client {
-	static final String SERVER_NAME = "TURING_SERVER";
-	static final String HOST = "localhost";
-	static final int DEFAULT_PORT = 1100;
-	static final int BACKGROUND_PORT = 1101;
+	static final String REGISTRATION_OBJECT = "reg";
+	static final String NOTIFICATION_OBJECT = "not";
+	static final String HOST                = "localhost";
+	static final int    DEFAULT_PORT        = 1100;
 	static final InetSocketAddress DEFAULT_ADDRESS = new InetSocketAddress(HOST, DEFAULT_PORT);
-	static final InetSocketAddress BACKGROUND_ADDRESS = new InetSocketAddress(HOST, BACKGROUND_PORT);
 
 	static ClientGUI frame;
 
