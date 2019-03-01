@@ -133,7 +133,7 @@ public class ClientGUI extends JFrame {
 		createDocumentButton.addActionListener(event -> createDocument());
 		//showDocumentButton.addActionListener(event -> showDocument());
 		//showSectionButton.addActionListener(event -> showSection());
-		editSectionButton.addActionListener(event -> connection.editSection(lastSelectedSection));
+		editSectionButton.addActionListener(event -> connection.editSection(lastSelectedDocument, lastSelectedSection));
 		//endEditButton.addActionListener(event -> foo());
 		//inviteButton.addActionListener(event -> bar());
 		refreshButton.addActionListener(event -> connection.list());
@@ -178,7 +178,7 @@ public class ClientGUI extends JFrame {
 	/**
 	 * TO DO
 	 */
-	public void createEditingSpace() {
+	public void createEditingSpace(String text) {
 		setVisible(false);
 		getContentPane().removeAll();
 		setLayout(new BorderLayout());
@@ -274,11 +274,6 @@ public class ClientGUI extends JFrame {
 		JOptionPane.showMessageDialog(Client.frame, message + e.getMessage(),
 				"Error", JOptionPane.ERROR_MESSAGE);
 	}
-
-	/**
-	 * TO DO
-	 */
-	public Document getLastSelectedDocument() { return lastSelectedDocument; }
 
 	/**
 	 * TO DO

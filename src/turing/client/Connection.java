@@ -181,18 +181,17 @@ public class Connection {
 	/**
 	 * TO DO
 	 */
-	public void editSection(int index) {
-		if (index < 0) {
+	public void editSection(Document document, int section) {
+		if (section < 0) {
 			JOptionPane.showMessageDialog(Client.frame, "Select a section");
 			return;
 		}
-		Document doc = Client.frame.getLastSelectedDocument();
 		JSONObject req = new JSONObject();
 		String jsonString;
 		req.put(Fields.OPERATION, Fields.OPERATION_EDIT_SECTION);
-		req.put(Fields.DOCUMENT_NAME, doc.getName());
-		req.put(Fields.DOCUMENT_CREATOR, doc.getCreator());
-		req.put(Fields.DOCUMENT_SECTION, index + 1);
+		req.put(Fields.DOCUMENT_NAME, document.getName());
+		req.put(Fields.DOCUMENT_CREATOR, document.getCreator());
+		req.put(Fields.DOCUMENT_SECTION, section + 1);
 
 		// send request and wait reply
 		try {
@@ -204,6 +203,6 @@ public class Connection {
 			Client.frame.showErrorDialog("Communication error", e);
 			return;
 		}
-		JOptionPane.showMessageDialog(Client.frame, index + 1);
+		JOptionPane.showMessageDialog(Client.frame, section + 1);
 	}
 }

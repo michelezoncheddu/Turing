@@ -10,7 +10,6 @@ import turing.server.exceptions.UserNotAllowedException;
 import java.io.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 
 import static java.lang.System.out;
 
@@ -65,6 +64,7 @@ public class ClientHandler implements Runnable {
 			}
 
 			// client disconnected
+			// TODO: release locks
 			if (reqString == null) {
 				if (currentUser != null) {
 					currentUser.setOnline(false);
