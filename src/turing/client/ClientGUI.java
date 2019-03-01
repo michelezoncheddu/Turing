@@ -1,9 +1,15 @@
 package turing.client;
 
+import turing.CallbackHelloClientInterface;
+import turing.CallbackHelloServerInterface;
+
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import javax.swing.*;
@@ -29,13 +35,26 @@ public class ClientGUI extends JFrame {
 	public ClientGUI() {
 		super("Turing");
 
+		// BEGIN TEST
+		String name = "CallbackHelloServer";
+		try {
+			Registry registry = LocateRegistry.getRegistry("localhost", 2048);
+			CallbackHelloServerInterface h = (CallbackHelloServerInterface) registry.lookup(name);
+			CallbackHelloClientImpl callbackObj = new CallbackHelloClientImpl();
+			CallbackHelloClientInterface stub = (CallbackHelloClientInterface) UnicastRemoteObject.exportObject(callbackObj, 0);
+			h.registerForCallback(stub);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		// END TEST
+
 		// try to connect with the server
 		try {
 			connection = new Connection(Client.DEFAULT_ADDRESS, Client.BACKGROUND_ADDRESS);
 		} catch (IOException e) {
 			e.printStackTrace();
 			JOptionPane.showMessageDialog(Client.frame, "Can't connect to the server");
-			//System.exit(0);
+			//System.exit(0); // TODO: why commented?
 		}
 
 		documents = new ArrayList<>();

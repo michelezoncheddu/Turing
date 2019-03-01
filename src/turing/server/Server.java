@@ -1,5 +1,6 @@
 package turing.server;
 
+import turing.CallbackHelloServerInterface;
 import turing.UserManagerAPI;
 
 import java.io.IOException;
@@ -31,6 +32,19 @@ public class Server implements Runnable {
 	 */
 	@Override
 	public void run() {
+
+		// BEGIN TEST
+		try {
+			CallbackHelloServerImpl server = new CallbackHelloServerImpl();
+			CallbackHelloServerInterface stub = (CallbackHelloServerInterface) UnicastRemoteObject.exportObject(server, 39000);
+			String name = "CallbackHelloServer";
+			Registry registry = LocateRegistry.createRegistry(2048);
+			registry.bind(name, stub);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		// END TEST
+
 		DocumentManager documentManager = new DocumentManager();
 		UserManager userManager = new UserManager();
 		exportObject(userManager);
