@@ -18,7 +18,7 @@ public class ClientHandler implements Runnable {
 	private static UserManager userManager;
 	private Socket clientConnection, backgroundConnection;
 	private User currentUser = null;
-	private BufferedWriter writer, backgroundWriter;
+	private BufferedWriter writer;
 
 	/**
 	 * TO DO
@@ -47,7 +47,6 @@ public class ClientHandler implements Runnable {
 		try {
 			reader = new BufferedReader(new InputStreamReader(clientConnection.getInputStream(), StandardCharsets.UTF_8));
 			writer = new BufferedWriter(new OutputStreamWriter(clientConnection.getOutputStream(), StandardCharsets.UTF_8));
-			backgroundWriter = new BufferedWriter(new OutputStreamWriter(backgroundConnection.getOutputStream(), StandardCharsets.UTF_8));
 		} catch (IOException e) {
 			e.printStackTrace();
 			return;
@@ -68,13 +67,11 @@ public class ClientHandler implements Runnable {
 			if (reqString == null) {
 				if (currentUser != null) {
 					currentUser.setOnline(false);
-					currentUser.backgroundWriter = null;
 				}
 				try {
 					reader.close();
 					writer.close();
 					clientConnection.close();
-					backgroundWriter.close();
 					backgroundConnection.close();
 				} catch (IOException e) {
 					e.printStackTrace();
@@ -97,7 +94,6 @@ public class ClientHandler implements Runnable {
 			reader.close();
 			writer.close();
 			clientConnection.close();
-			backgroundWriter.close();
 			backgroundConnection.close();
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -153,7 +149,6 @@ public class ClientHandler implements Runnable {
 		boolean success = userManager.logIn(username, password);
 		if (success) {
 			currentUser = userManager.getUser(username);
-			currentUser.backgroundWriter = backgroundWriter;
 
 			sendStatusMessage(Fields.STATUS_OK);
 			out.println(Thread.currentThread() + " " + currentUser.getUsername() + " connected");

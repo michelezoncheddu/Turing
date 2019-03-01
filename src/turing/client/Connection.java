@@ -21,7 +21,7 @@ import java.rmi.registry.Registry;
  */
 public class Connection {
 	BufferedWriter writer;
-	BufferedReader reader, backgroundReader;
+	BufferedReader reader;
 
 	/**
 	 * Initializes the connection with the server
@@ -33,10 +33,6 @@ public class Connection {
 		backgroundConnection.connect(backgroundAddress);
 		writer = new BufferedWriter(new OutputStreamWriter(defaultConnection.getOutputStream(), StandardCharsets.UTF_8));
 		reader = new BufferedReader(new InputStreamReader(defaultConnection.getInputStream(), StandardCharsets.UTF_8));
-		backgroundReader = new BufferedReader(new InputStreamReader(backgroundConnection.getInputStream(), StandardCharsets.UTF_8));
-
-		// thread for background connection (async notifications from server)
-		new Thread(new BackgroundListener(backgroundReader)).start();
 	}
 
 	/**

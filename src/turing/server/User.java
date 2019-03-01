@@ -2,7 +2,6 @@ package turing.server;
 
 import org.json.JSONObject;
 
-import java.io.BufferedWriter;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -19,8 +18,6 @@ public class User {
 	final List<Document> sharedDocuments;
 	final ConcurrentLinkedQueue<JSONObject> pendingNotifications;
 
-	BufferedWriter backgroundWriter; // to send notifications, USE WITH SYNCHRONIZED
-
 	/**
 	 * Creates a new user.
 	 */
@@ -31,7 +28,6 @@ public class User {
 		this.sharedDocuments = new LinkedList<>();
 		this.pendingNotifications = new ConcurrentLinkedQueue<>();
 		this.online = false;
-		this.backgroundWriter = null;
 	}
 
 	public String getUsername() {
