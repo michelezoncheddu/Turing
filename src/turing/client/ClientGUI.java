@@ -17,7 +17,7 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.text.NumberFormatter;
 
 /**
- * Implements the turing client Graphical User Interface.
+ * Implements the turing client Graphical User Interface
  */
 public class ClientGUI extends JFrame {
 	private Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
@@ -30,12 +30,12 @@ public class ClientGUI extends JFrame {
 	private int lastSelectedSection = -1;
 
 	/**
-	 * Creates the Graphical User Interface.
+	 * Creates the Graphical User Interface
 	 */
 	public ClientGUI() {
 		super("Turing");
 
-		// BEGIN TEST
+		// TEST ********************************************************************************************************
 		try {
 			Registry registry = LocateRegistry.getRegistry(Client.HOST);
 			ServerNotificationManagerAPI aaa = (ServerNotificationManagerAPI) registry.lookup(Client.NOTIFICATION_OBJECT);
@@ -45,7 +45,7 @@ public class ClientGUI extends JFrame {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		// END TEST
+		// TEST ********************************************************************************************************
 
 		// try to connect with the server
 		try {
@@ -53,7 +53,6 @@ public class ClientGUI extends JFrame {
 		} catch (IOException e) {
 			e.printStackTrace();
 			JOptionPane.showMessageDialog(Client.frame, "Can't connect to the server");
-			//System.exit(0); // TODO: why commented?
 		}
 
 		documents = new ArrayList<>();
@@ -178,7 +177,7 @@ public class ClientGUI extends JFrame {
 		documentsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION); // force to select only one row
 		documentsTable.getSelectionModel().addListSelectionListener(event -> {
 			if (event.getValueIsAdjusting())
-				updateSectionTable(documentsTable.getSelectedRow());
+				updateSectionsTable(documentsTable.getSelectedRow());
 			sectionsTable.clearSelection();
 		});
 		documentsPanel.add(new JScrollPane(documentsTable));
@@ -194,9 +193,9 @@ public class ClientGUI extends JFrame {
 	}
 
 	/**
-	 * TO DO
+	 * Creates the document editing window
 	 */
-	public void createEditingSpace(String text) {
+	public void createEditingSpace(String documentText) {
 		setVisible(false);
 		getContentPane().removeAll();
 		setLayout(new BorderLayout());
@@ -230,13 +229,15 @@ public class ClientGUI extends JFrame {
 	}
 
 	/**
-	 * TO DO
+	 * Creates the document creation window
 	 */
 	private void createDocument() {
-		JPanel panel = new JPanel();
+		JPanel window = new JPanel();
 		JLabel documentNameLabel = new JLabel("Document name");
 		JLabel sectionsLabel = new JLabel("Number of sections");
 		JTextField documentNameField = new JTextField(10);
+
+		// force number digits
 		NumberFormatter numberFormatter = new NumberFormatter(NumberFormat.getIntegerInstance());
 		numberFormatter.setValueClass(Integer.class);
 		numberFormatter.setAllowsInvalid(false);
@@ -244,49 +245,54 @@ public class ClientGUI extends JFrame {
 		numberFormatter.setMaximum(1000);
 		JFormattedTextField sectionsField = new JFormattedTextField(numberFormatter);
 		sectionsField.setColumns(10);
-		panel.add(documentNameLabel);
-		panel.add(documentNameField);
-		panel.add(sectionsLabel);
-		panel.add(sectionsField);
-		int code = JOptionPane.showConfirmDialog(Client.frame, panel, "Create document",
+
+		// creating dialog window
+		window.add(documentNameLabel);
+		window.add(documentNameField);
+		window.add(sectionsLabel);
+		window.add(sectionsField);
+		int code = JOptionPane.showConfirmDialog(Client.frame, window, "Create document",
 				JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE);
 
-		if (code != JOptionPane.OK_OPTION)
+		if (code != JOptionPane.OK_OPTION) // operation aborted
 			return;
+
+		// checking fields
 		String documentName = documentNameField.getText();
 		Integer sections = (Integer) sectionsField.getValue();
-
 		if (documentName.isBlank() || sections == null) {
 			JOptionPane.showMessageDialog(Client.frame, "You must compile all fields");
 			return;
 		}
+
+		// creating document
 		connection.createDocument(documentName, sections);
 	}
 
 	/**
-	 * TO DO
+	 * Adds a document in the documents table and in the documents list
 	 */
 	public void addDocument(Document document) {
-		Object[] data = {document.getName(), document.getCreator(), "n.d.", "n.d."};
-		documentsTableModel.addRow(data);
+		Object[] tableData = {document.getName(), document.getCreator(), "n.d.", "n.d."}; // TODO: unused fields
+		documentsTableModel.addRow(tableData);
 		documents.add(document);
 	}
 
 	/**
-	 * TO DO
+	 * Updates the sections table with the selected document's sections
 	 */
-	private void updateSectionTable(int index) {
+	private void updateSectionsTable(int documentIndex) {
 		sectionsTableModel.setRowCount(0);
-		lastSelectedDocument = documents.get(index);
+		lastSelectedDocument = documents.get(documentIndex);
 		lastSelectedSection = -1;
-		for (int i = 0; i < documents.get(index).getSections(); i++) {
-			Object[] data = {documents.get(index).getName() + "_" + i, "TODO"};
+		for (int i = 0; i < documents.get(documentIndex).getSections(); i++) {
+			Object[] data = {documents.get(documentIndex).getName() + "_" + i, "n.d."}; // TODO: unused field
 			sectionsTableModel.addRow(data);
 		}
 	}
 
 	/**
-	 * TO DO
+	 * Shows an error window with an error message and description
 	 */
 	public void showErrorDialog(String message, Exception e) {
 		JOptionPane.showMessageDialog(Client.frame, message + e.getMessage(),
@@ -294,7 +300,7 @@ public class ClientGUI extends JFrame {
 	}
 
 	/**
-	 * TO DO
+	 * Clears the tables and the documents list
 	 */
 	public void clearTables() {
 		documentsTableModel.setRowCount(0);

@@ -13,30 +13,23 @@ import java.nio.charset.StandardCharsets;
 
 import static java.lang.System.out;
 
+/**
+ * A thread that implements the operations of a individual client
+ */
 public class ClientHandler implements Runnable {
-	private static DocumentManager documentManager;
-	private static UserManager userManager;
 	private Socket clientConnection;
 	private User currentUser = null;
 	private BufferedWriter writer;
 
 	/**
-	 * TO DO
+	 * Creates a new client handler with a connection with a client
 	 */
 	public ClientHandler(Socket clientConnection) {
 		this.clientConnection = clientConnection;
 	}
 
 	/**
-	 * TO DO
-	 */
-	public static void setManagers(DocumentManager dm, UserManager um) {
-		documentManager = dm;
-		userManager = um;
-	}
-
-	/**
-	 * TO DO
+	 * Client handling loop
 	 */
 	@Override
 	public void run() {
@@ -62,10 +55,11 @@ public class ClientHandler implements Runnable {
 			}
 
 			// client disconnected
-			// TODO: release locks
+			// TODO: release editing locks
 			if (reqString == null) {
 				if (currentUser != null) {
 					currentUser.setOnline(false);
+					currentUser = null; // ready for another client
 				}
 				try {
 					reader.close();
@@ -100,7 +94,7 @@ public class ClientHandler implements Runnable {
 	}
 
 	/**
-	 * TO DO
+	 * Sends a status message to the client
 	 */
 	private void sendStatusMessage(String status) throws IOException {
 		JSONObject message = new JSONObject();
@@ -111,24 +105,24 @@ public class ClientHandler implements Runnable {
 	}
 
 	/**
-	 * TO DO
+	 * Sorts the request to the handlers
 	 */
 	private void handleOperation(JSONObject req) throws IOException {
 		switch ((String) req.get(Fields.OPERATION)) {
 		case Fields.OPERATION_LOGIN:
-			handleLogin(req);
+			login(req);
 			break;
 
 		case Fields.OPERATION_CREATE_DOC:
-			handleCreateDoc(req);
+			createDoc(req);
 			break;
 
 		case Fields.OPERATION_LIST:
-			handleList();
+			list();
 			break;
 
 		case Fields.OPERATION_EDIT_SECTION:
-			handleEditSection(req);
+			editSection(req);
 			break;
 
 		default:
@@ -137,15 +131,15 @@ public class ClientHandler implements Runnable {
 	}
 
 	/**
-	 * TO DO
+	 * Implements the login operation
 	 */
-	private void handleLogin(JSONObject req) throws IOException {
+	private void login(JSONObject req) throws IOException {
 		String username = (String) req.get(Fields.USERNAME);
 		String password = (String) req.get(Fields.PASSWORD);
 		// try to log user
-		boolean success = userManager.logIn(username, password);
+		boolean success = Server.userManager.logIn(username, password);
 		if (success) {
-			currentUser = userManager.getUser(username);
+			currentUser = Server.userManager.getUser(username);
 
 			sendStatusMessage(Fields.STATUS_OK);
 			out.println(Thread.currentThread() + " " + currentUser.getUsername() + " connected");
@@ -156,9 +150,9 @@ public class ClientHandler implements Runnable {
 	}
 
 	/**
-	 * TO DO
+	 * Implements the create document operation
 	 */
-	private void handleCreateDoc(JSONObject req) throws IOException {
+	private void createDoc(JSONObject req) throws IOException {
 		String docName = (String) req.get(Fields.DOCUMENT_NAME);
 		int sections = (Integer) req.get(Fields.NUMBER_OF_SECTIONS);
 		Document newDoc;
@@ -169,14 +163,14 @@ public class ClientHandler implements Runnable {
 			return;
 		}
 		currentUser.myDocuments.add(newDoc);
-		documentManager.add(newDoc);
+		Server.documentManager.add(newDoc);
 		sendStatusMessage(Fields.STATUS_OK);
 	}
 
 	/**
-	 * TO DO
+	 * Implements the list operation
 	 */
-	private void handleList() throws IOException {
+	private void list() throws IOException {
 		JSONObject msg = new JSONObject();
 
 		synchronized (currentUser.sharedDocuments) {
@@ -206,16 +200,16 @@ public class ClientHandler implements Runnable {
 	}
 
 	/**
-	 * TO DO
+	 * Implements the edit section operation
 	 */
-	private void handleEditSection(JSONObject req) throws IOException {
+	private void editSection(JSONObject req) throws IOException {
 		String creator = (String) req.get(Fields.DOCUMENT_CREATOR);
 		String docName = (String) req.get(Fields.DOCUMENT_NAME);
 		int sectionNumber = (Integer) req.get(Fields.DOCUMENT_SECTION);
 
 		Document document;
 		try {
-			document = documentManager.get(currentUser, creator, docName);
+			document = Server.documentManager.get(currentUser, creator, docName);
 		} catch (UserNotAllowedException e) { // TODO: send error to client
 			System.err.println(currentUser + " not allowed to modify " + docName);
 			return;

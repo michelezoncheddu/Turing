@@ -17,11 +17,13 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 
 /**
- * Implements the connection with the server
+ * Implements the connection and the operations with the server
  */
 public class Connection {
-	BufferedWriter writer;
-	BufferedReader reader;
+
+	// streams with the server
+	private BufferedWriter writer;
+	private BufferedReader reader;
 
 	/**
 	 * Initializes the connection with the server
@@ -34,24 +36,28 @@ public class Connection {
 	}
 
 	/**
-	 * Performs the sign up function
+	 * Performs the sign up operation
 	 */
 	public void signUp(String username, String password) {
 		if (username.isBlank() || password.isBlank())
 			return;
 
+		// Remote Method Invocation
 		UserManagerAPI serverObject;
 		Remote remoteObject;
 		try {
+			// obtaining the remote object
 			Registry registry = LocateRegistry.getRegistry(Client.HOST);
 			remoteObject = registry.lookup(Client.REGISTRATION_OBJECT);
 			serverObject = (UserManagerAPI) remoteObject;
+
+			// trying to register user
 			boolean success = serverObject.signUp(username, password);
 			if (success)
 				JOptionPane.showMessageDialog(Client.frame, username + " registered");
 			else
 				JOptionPane.showMessageDialog(Client.frame, "Can't register " + username,
-						"Error", JOptionPane.ERROR_MESSAGE); // TODO: specify error
+						"Error", JOptionPane.ERROR_MESSAGE); // TODO: specify error and exceptions
 		} catch (RemoteException e) {
 			Client.frame.showErrorDialog("Communication error", e);
 		} catch (NotBoundException e) {
@@ -60,7 +66,7 @@ public class Connection {
 	}
 
 	/**
-	 * Performs the log in function
+	 * Performs the log in operation
 	 */
 	public void logIn(String username, String password) {
 		if (username.isBlank() || password.isBlank())
@@ -86,14 +92,14 @@ public class Connection {
 
 		JSONObject reply = new JSONObject(jsonString);
 		if (reply.get(Fields.STATUS).equals(Fields.STATUS_OK)) { // logged successfully
-			Client.frame.createWorkspace();
+			Client.frame.createWorkspace(); // create the workspace window
 			list(); // download table data
 		} else
 			JOptionPane.showMessageDialog(Client.frame, "Inexistent user or wrong password"); // TODO: specify error
 	}
 
 	/**
-	 * TO DO
+	 * Performs the list operation
 	 */
 	public void list() {
 		JSONObject req = new JSONObject();
@@ -131,7 +137,7 @@ public class Connection {
 	}
 
 	/**
-	 * TO DO
+	 * Performs the create document operation
 	 */
 	public void createDocument(String documentName, int sections) {
 		JSONObject req = new JSONObject();
@@ -152,28 +158,13 @@ public class Connection {
 		}
 		JSONObject reply = new JSONObject(jsonString);
 		if (reply.get(Fields.STATUS).equals(Fields.STATUS_OK))
-			list(); // download table data
+			list(); // updating table data
 		else
 			JOptionPane.showMessageDialog(Client.frame, "Error creating document");
-
-		// *** TEST
-		/*JSONObject tmp = new JSONObject();
-		tmp.put(Fields.OPERATION, Fields.OPERATION_EDIT_SECTION);
-		tmp.put(Fields.DOCUMENT_CREATOR, "admin");
-		tmp.put(Fields.DOCUMENT_NAME, "test");
-		tmp.put(Fields.DOCUMENT_SECTION, 0);
-		tmp.write(writer);
-		try {
-			writer.newLine();
-			writer.flush();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}*/
-		// *** TEST
 	}
 
 	/**
-	 * TO DO
+	 * Performs the edit section operation
 	 */
 	public void editSection(Document document, int section) {
 		if (section < 0) {
@@ -198,5 +189,6 @@ public class Connection {
 			return;
 		}
 		JOptionPane.showMessageDialog(Client.frame, section + 1);
+		// TODO: continue implementation
 	}
 }

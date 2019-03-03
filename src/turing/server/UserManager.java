@@ -8,13 +8,13 @@ import java.util.AbstractMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Contains a collection of users.
+ * Contains a collection of users
  */
 public class UserManager extends RemoteServer implements UserManagerAPI {
 	private AbstractMap<String, User> users = new ConcurrentHashMap<>();
 
 	/**
-	 * Registers a new user.
+	 * Registers a new user
 	 */
 	@Override
 	public boolean signUp(String username, String password) throws RemoteException {
@@ -30,7 +30,7 @@ public class UserManager extends RemoteServer implements UserManagerAPI {
 			return false;
 
 		if (user.getPassword().equals(password))
-			return user.setOnline(true);
+			return user.setOnline(true); // setOnline is thread safe
 
 		return false;
 	}

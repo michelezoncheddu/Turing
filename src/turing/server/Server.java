@@ -15,27 +15,27 @@ import java.util.concurrent.TimeUnit;
 import static java.lang.System.out;
 
 /**
- * Implements the turing server.
+ * Implements the turing server
  */
 public class Server implements Runnable {
-	private final String REGISTRATION_OBJECT = "reg";
-	private final String NOTIFICATION_OBJECT = "not";
-	private final int    RMI_PORT            = 1099;
-	private final int    DEFAULT_PORT        = 1100;
-	private boolean      stop                = false; // TODO: it never stops
+	static final String DOCS_ROOT = "docs";
 
-	public static final String ROOT = "docs"; // TODO: change name
+	// global managers
+	static DocumentManager           documentManager;
+	static UserManager               userManager;
+	static ServerNotificationManager notificationManager;
 
 	/**
-	 * Initialize the server.
+	 * Initializes the server
 	 */
 	@Override
 	public void run() {
-		DocumentManager documentManager = new DocumentManager();
-		UserManager userManager = new UserManager();
-		ServerNotificationManager notificationManager = new ServerNotificationManager();
+		int    DEFAULT_PORT        = 1100;
+		boolean      stop                = false;
+		documentManager     = new DocumentManager();
+		userManager         = new UserManager();
+		notificationManager = new ServerNotificationManager();
 		exportObjects(userManager, notificationManager);
-		ClientHandler.setManagers(documentManager, userManager);
 
 		ServerSocket serverSocket;
 		Socket clientConnection;
@@ -82,9 +82,13 @@ public class Server implements Runnable {
 	}
 
 	/**
-	 * Exports the remote object.
+	 * Exports the remote objects
 	 */
 	private void exportObjects(UserManagerAPI userManager, ServerNotificationManagerAPI notificationManager) {
+		int    RMI_PORT            = 1099;
+		String REGISTRATION_OBJECT = "reg"; // TODO: make shared
+		String NOTIFICATION_OBJECT = "not";
+
 		try {
 			// exporting objects
 			UserManagerAPI userManagerStub =
@@ -103,7 +107,7 @@ public class Server implements Runnable {
 	}
 
 	/**
-	 * Main function.
+	 * Main function
 	 */
 	public static void main(String[] args) {
 		new Thread(new Server()).start();

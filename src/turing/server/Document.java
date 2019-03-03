@@ -7,15 +7,18 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.util.ArrayList;
 
+/**
+ * Represents a document inside the server
+ */
 public class Document {
 	private String name;
 	private User creator;
 	private Section[] sections;
 	private ArrayList<User> allowedUsers;
-	private InetAddress multicastAddress;
+	private InetAddress chatAddress;
 
 	/**
-	 * TO DO
+	 * Creates a new document
 	 */
 	public Document(String name, User creator, int sections) throws IOException, PreExistentDocumentException {
 		this.name = name;
@@ -25,7 +28,7 @@ public class Document {
 		String creatorName = creator.getUsername();
 
 		// creating directory
-		String dirPath = Server.ROOT + File.separator + creatorName + File.separator + name;
+		String dirPath = Server.DOCS_ROOT + File.separator + creatorName + File.separator + name;
 		File file = new File(dirPath);
 		if (file.exists())
 			throw new PreExistentDocumentException(dirPath);
@@ -48,7 +51,7 @@ public class Document {
 	public int getNumberOfSections() { return sections.length; }
 
 	/**
-	 * TO DO
+	 * Returns the specified section
 	 */
 	public Section getSection(int index) {
 		if (index >= 0 && index < sections.length)
@@ -57,7 +60,7 @@ public class Document {
 	}
 
 	/**
-	 * TO DO
+	 * Checks if the user is allowed to edit the document
 	 */
 	public boolean isEditableBy(User user) {
 		return user == creator || allowedUsers.contains(user); // TODO: more secure checking only usernames?

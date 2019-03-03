@@ -17,7 +17,6 @@ public class ServerNotificationManager implements ServerNotificationManagerAPI {
 		}
 	}
 
-	/* annulla registrazione per il callback */
 	public synchronized void unregisterForCallback(ClientNotificationManagerAPI callbackClient) throws RemoteException {
 		if (clients.remove(callbackClient))
 			System.out.println("Client unregistered");

@@ -7,10 +7,10 @@ import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
- * Contains user information.
+ * Represents user data
  */
 public class User {
-	private String username;
+	private final String username;
 	private String password;
 	private boolean online;
 
@@ -19,7 +19,7 @@ public class User {
 	final ConcurrentLinkedQueue<JSONObject> pendingNotifications;
 
 	/**
-	 * Creates a new user.
+	 * Creates a new user
 	 */
 	public User(String username, String password) {
 		this.username = username;
