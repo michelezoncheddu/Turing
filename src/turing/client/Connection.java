@@ -191,4 +191,26 @@ public class Connection {
 		JSONObject reply = new JSONObject(jsonString);
 		Client.frame.createEditingSpace((String) reply.get(Fields.SECTION_CONTENT));
 	}
+
+	/**
+	 * Performs the end edit operation
+	 */
+	public void endEdit(Document document, int section, String sectionContent) {
+		JSONObject req = new JSONObject();
+		String jsonString;
+		req.put(Fields.OPERATION, Fields.OPERATION_END_EDIT);
+		req.put(Fields.DOCUMENT_NAME, document.getName());
+		req.put(Fields.DOCUMENT_CREATOR, document.getCreator());
+		req.put(Fields.DOCUMENT_SECTION, section);
+		req.put(Fields.SECTION_CONTENT, sectionContent);
+
+		// send request and TODO: wait reply
+		try {
+			req.write(writer);
+			writer.newLine();
+			writer.flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 }

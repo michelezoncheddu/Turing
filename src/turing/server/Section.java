@@ -1,9 +1,7 @@
 package turing.server;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.util.List;
 
 public class Section {
@@ -30,11 +28,19 @@ public class Section {
 	}
 
 	/**
-	 * Unlocks the section
+	 * Unlocks the section and saves the new content
 	 */
-	public synchronized void endEdit(User user) {
-		if (editingUser == user)
-			editingUser = null;
+	public synchronized void endEdit(User user, String content) throws IOException {
+		if (editingUser != user)
+			return;
+
+		editingUser = null;
+
+		if (content == null)
+			return;
+
+		Path path = Paths.get(this.path);
+		Files.writeString(path, content, StandardOpenOption.WRITE);
 	}
 
 	/**

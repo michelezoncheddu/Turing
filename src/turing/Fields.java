@@ -6,6 +6,7 @@ public final class Fields {
 	public static final String OPERATION_LOGIN        = "operation_login";
 	public static final String OPERATION_CREATE_DOC   = "operation_create_doc";
 	public static final String OPERATION_EDIT_SECTION = "operation_edit_section";
+	public static final String OPERATION_END_EDIT     = "operation_end_edit";
 	public static final String OPERATION_LIST         = "operation_list";
 
 	public static final String INCOMING_MESSAGES = "incoming_messages";

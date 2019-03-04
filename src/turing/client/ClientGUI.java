@@ -142,12 +142,6 @@ public class ClientGUI extends JFrame {
 		JButton editSectionButton = new JButton("Edit section");
 		JButton inviteButton = new JButton("Invite");
 		JButton refreshButton = new JButton("Refresh");
-		buttonsPanel.add(createDocumentButton);
-		buttonsPanel.add(showDocumentButton);
-		buttonsPanel.add(showSectionButton);
-		buttonsPanel.add(editSectionButton);
-		buttonsPanel.add(inviteButton);
-		buttonsPanel.add(refreshButton);
 		createDocumentButton.addActionListener(event -> createDocument());
 		//showDocumentButton.addActionListener(event -> showDocument());
 		//showSectionButton.addActionListener(event -> showSection());
@@ -155,6 +149,12 @@ public class ClientGUI extends JFrame {
 		//endEditButton.addActionListener(event -> foo());
 		//inviteButton.addActionListener(event -> bar());
 		refreshButton.addActionListener(event -> connection.list());
+		buttonsPanel.add(createDocumentButton);
+		buttonsPanel.add(showDocumentButton);
+		buttonsPanel.add(showSectionButton);
+		buttonsPanel.add(editSectionButton);
+		buttonsPanel.add(inviteButton);
+		buttonsPanel.add(refreshButton);
 
 		// sectionsPanel
 		String[] sectionsTableColumns = new String[] {"N°", "Field 2", "Field 3"};
@@ -200,6 +200,7 @@ public class ClientGUI extends JFrame {
 		setVisible(false);
 		getContentPane().removeAll();
 		setLayout(new BorderLayout());
+		JTextArea editingArea = new JTextArea(documentText);
 
 		// panels
 		JPanel buttonsPanel = new JPanel();
@@ -210,13 +211,14 @@ public class ClientGUI extends JFrame {
 		chatPanel.setLayout(new BorderLayout());
 
 		// buttonsPanel
-		JButton saveFileButton = new JButton("Save file");
+		JButton endEditButton = new JButton("End edit");
 		JButton discardChangesButton = new JButton("Discard changes");
-		buttonsPanel.add(saveFileButton);
+		endEditButton.addActionListener(event ->
+				connection.endEdit(lastSelectedDocument, lastSelectedSection, editingArea.getText()));
+		buttonsPanel.add(endEditButton);
 		buttonsPanel.add(discardChangesButton);
 
 		// editingPanel
-		JTextArea editingArea = new JTextArea(documentText);
 		editingArea.setWrapStyleWord(true);
 		JScrollPane editingScroll = new JScrollPane (editingArea,
 				JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);

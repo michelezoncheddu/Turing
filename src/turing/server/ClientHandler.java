@@ -17,9 +17,9 @@ import static java.lang.System.out;
  * A thread that implements the operations of a individual client
  */
 public class ClientHandler implements Runnable {
-	private Socket clientConnection;
-	private User currentUser = null;
-	private BufferedWriter writer;
+	private Socket clientConnection; // connection with the client
+	private User currentUser = null; // currently logged user
+	private BufferedWriter writer;   // output stream with the client
 
 	/**
 	 * Creates a new client handler with a connection with a client
@@ -33,7 +33,7 @@ public class ClientHandler implements Runnable {
 	 */
 	@Override
 	public void run() {
-		BufferedReader reader;
+		BufferedReader reader; // input stream with the client
 
 		// open streams
 		try {
@@ -58,11 +58,18 @@ public class ClientHandler implements Runnable {
 			if (reqString == null) {
 				if (currentUser != null) {
 					currentUser.setOnline(false);
+
+					// release possible locks
 					Section currentSection = currentUser.getEditingSection();
-					if (currentSection != null)
-						currentSection.endEdit(currentUser);
+					if (currentSection != null) {
+						try {
+							currentSection.endEdit(currentUser, null);
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+					}
 					currentUser.setEditingSection(null);
-					currentUser = null; // ready for another client
+					currentUser = null; // make thread ready for another client
 				}
 				try {
 					reader.close();
@@ -80,7 +87,7 @@ public class ClientHandler implements Runnable {
 			try {
 				handleOperation(req);
 			} catch (IOException e) {
-				e.printStackTrace(); // TODO: specify problem and send error to client
+				e.printStackTrace(); // TODO: specify problem and send a generic error to client
 			}
 		}
 
@@ -126,6 +133,10 @@ public class ClientHandler implements Runnable {
 
 		case Fields.OPERATION_EDIT_SECTION:
 			editSection(req);
+			break;
+
+		case Fields.OPERATION_END_EDIT:
+			endEdit(req);
 			break;
 
 		default:
@@ -233,13 +244,46 @@ public class ClientHandler implements Runnable {
 		if (section.startEdit(currentUser)) {
 			currentUser.setEditingSection(section);
 			JSONObject reply = new JSONObject();
-			String sectionContent = section.getContent();
-			reply.put(Fields.SECTION_CONTENT, sectionContent);
+			String content = section.getContent();
+			reply.put(Fields.SECTION_CONTENT, content);
 			reply.write(writer);
 			writer.newLine();
 			writer.flush();
 		} else {
 			// TODO: send error
 		}
+	}
+
+	/**
+	 * Implements the end edit operation
+	 */
+	private void endEdit(JSONObject req) throws IOException {
+		if (currentUser.getEditingSection() == null) {
+			// TODO: send error
+			return;
+		}
+
+		String creator = (String) req.get(Fields.DOCUMENT_CREATOR);
+		String docName = (String) req.get(Fields.DOCUMENT_NAME);
+		int sectionNumber = (Integer) req.get(Fields.DOCUMENT_SECTION);
+		String content = req.has(Fields.SECTION_CONTENT) ? (String) req.get(Fields.SECTION_CONTENT) : null;
+
+		Document document;
+		try {
+			document = Server.documentManager.get(currentUser, creator, docName);
+		} catch (UserNotAllowedException e) { // TODO: send error to client
+			System.err.println(currentUser + " not allowed to modify " + docName);
+			return;
+		} catch (InexistentDocumentException e) { // TODO: send error to client
+			System.err.println(docName + " inexistent");
+			return;
+		}
+
+		Section section = document.getSection(sectionNumber);
+		if (section == null)
+			return; // TODO: send error to client, inexistent section
+
+		section.endEdit(currentUser, content);
+		currentUser.setEditingSection(null);
 	}
 }
