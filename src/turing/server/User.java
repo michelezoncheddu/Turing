@@ -13,6 +13,7 @@ public class User {
 	private final String username;
 	private String password;
 	private boolean online;
+	private Section editingSection;
 
 	final List<Document> myDocuments;
 	final List<Document> sharedDocuments;
@@ -28,6 +29,7 @@ public class User {
 		this.sharedDocuments = new LinkedList<>();
 		this.pendingNotifications = new ConcurrentLinkedQueue<>();
 		this.online = false;
+		this.editingSection = null;
 	}
 
 	public String getUsername() {
@@ -36,7 +38,16 @@ public class User {
 	public String getPassword() {
 		return password;
 	}
+	public boolean isOnline() {
+		return online;
+	}
+	public Section getEditingSection() {
+		return editingSection;
+	}
 
+	/**
+	 * TO DO
+	 */
 	public synchronized boolean setOnline(boolean newStatus) {
 		if (online == newStatus)
 			return false;
@@ -44,12 +55,10 @@ public class User {
 		return true;
 	}
 
-	public boolean isOnline() {
-		return online;
-	}
-
-	@Override
-	public String toString() {
-		return username + ", online: " + online;
+	/**
+	 * TO DO
+	 */
+	public void setEditingSection(Section section) {
+		editingSection = section;
 	}
 }

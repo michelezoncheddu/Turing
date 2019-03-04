@@ -8,6 +8,8 @@ public final class Fields {
 	public static final String OPERATION_EDIT_SECTION = "operation_edit_section";
 	public static final String OPERATION_LIST         = "operation_list";
 
+	public static final String INCOMING_MESSAGES = "incoming_messages";
+
 	public static final String STATUS     = "status";
 	public static final String STATUS_OK  = "status_ok";
 	public static final String STATUS_ERR = "status_err";
@@ -18,6 +20,5 @@ public final class Fields {
 	public static final String DOCUMENT_CREATOR   = "document_creator";
 	public static final String DOCUMENT_SECTION   = "document_section";
 	public static final String NUMBER_OF_SECTIONS = "number_of_sections";
-
-	public static final String INCOMING_MESSAGES = "incoming_messages";
+	public static final String SECTION_CONTENT    = "section_content";
 }

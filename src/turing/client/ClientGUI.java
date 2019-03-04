@@ -53,6 +53,7 @@ public class ClientGUI extends JFrame {
 		} catch (IOException e) {
 			e.printStackTrace();
 			JOptionPane.showMessageDialog(Client.frame, "Can't connect to the server");
+			System.exit(0);
 		}
 
 		documents = new ArrayList<>();
@@ -205,6 +206,7 @@ public class ClientGUI extends JFrame {
 		JPanel editingPanel = new JPanel();
 		JPanel chatPanel = new JPanel();
 		buttonsPanel.setLayout(new BoxLayout(buttonsPanel, BoxLayout.Y_AXIS));
+		editingPanel.setLayout(new BorderLayout());
 		chatPanel.setLayout(new BorderLayout());
 
 		// buttonsPanel
@@ -213,12 +215,21 @@ public class ClientGUI extends JFrame {
 		buttonsPanel.add(saveFileButton);
 		buttonsPanel.add(discardChangesButton);
 
+		// editingPanel
+		JTextArea editingArea = new JTextArea(documentText);
+		editingArea.setWrapStyleWord(true);
+		JScrollPane editingScroll = new JScrollPane (editingArea,
+				JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+		editingPanel.add(editingScroll, BorderLayout.CENTER);
+
 		// chatPanel
-		JTextArea chatArea = new JTextArea("No messages", 30, 24);
+		JTextArea chatArea = new JTextArea("No messages", 32, 24);
 		JTextField chatField = new JTextField("Write here");
 		JButton sendButton = new JButton("Send");
 		chatArea.setEditable(false);
-		chatPanel.add(chatArea, BorderLayout.NORTH);
+		JScrollPane chatScroll = new JScrollPane (chatArea,
+				JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+		chatPanel.add(chatScroll, BorderLayout.NORTH);
 		chatPanel.add(chatField, BorderLayout.CENTER);
 		chatPanel.add(sendButton, BorderLayout.SOUTH);
 
@@ -286,7 +297,7 @@ public class ClientGUI extends JFrame {
 		lastSelectedDocument = documents.get(documentIndex);
 		lastSelectedSection = -1;
 		for (int i = 0; i < documents.get(documentIndex).getSections(); i++) {
-			Object[] data = {documents.get(documentIndex).getName() + "_" + i, "n.d."}; // TODO: unused field
+			Object[] data = {documents.get(documentIndex).getName() + " - section " + i + 1, "n.d."}; // TODO: unused field
 			sectionsTableModel.addRow(data);
 		}
 	}

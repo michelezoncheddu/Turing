@@ -55,10 +55,13 @@ public class ClientHandler implements Runnable {
 			}
 
 			// client disconnected
-			// TODO: release editing locks
 			if (reqString == null) {
 				if (currentUser != null) {
 					currentUser.setOnline(false);
+					Section currentSection = currentUser.getEditingSection();
+					if (currentSection != null)
+						currentSection.endEdit(currentUser);
+					currentUser.setEditingSection(null);
 					currentUser = null; // ready for another client
 				}
 				try {
@@ -136,11 +139,11 @@ public class ClientHandler implements Runnable {
 	private void login(JSONObject req) throws IOException {
 		String username = (String) req.get(Fields.USERNAME);
 		String password = (String) req.get(Fields.PASSWORD);
+
 		// try to log user
 		boolean success = Server.userManager.logIn(username, password);
 		if (success) {
 			currentUser = Server.userManager.getUser(username);
-
 			sendStatusMessage(Fields.STATUS_OK);
 			out.println(Thread.currentThread() + " " + currentUser.getUsername() + " connected");
 		} else {
@@ -182,7 +185,7 @@ public class ClientHandler implements Runnable {
 				doc.put("name", myDoc.getName());
 				doc.put("creator", myDoc.getCreator().getUsername());
 				doc.put("sections", myDoc.getNumberOfSections());
-				doc.put("shared", "no");
+				doc.put("shared", "no"); // TODO: maybe yes
 				doc.write(writer);
 				writer.newLine();
 			}
@@ -203,6 +206,11 @@ public class ClientHandler implements Runnable {
 	 * Implements the edit section operation
 	 */
 	private void editSection(JSONObject req) throws IOException {
+		if (currentUser.getEditingSection() != null) {
+			// TODO: send error
+			return;
+		}
+
 		String creator = (String) req.get(Fields.DOCUMENT_CREATOR);
 		String docName = (String) req.get(Fields.DOCUMENT_NAME);
 		int sectionNumber = (Integer) req.get(Fields.DOCUMENT_SECTION);
@@ -220,14 +228,18 @@ public class ClientHandler implements Runnable {
 
 		Section section = document.getSection(sectionNumber);
 		if (section == null)
-			return; // TODO: send error to client
+			return; // TODO: send error to client, inexistent section
 
 		if (section.startEdit(currentUser)) {
-			// send section to client
-			String data = section.getContent();
-			// send data
+			currentUser.setEditingSection(section);
+			JSONObject reply = new JSONObject();
+			String sectionContent = section.getContent();
+			reply.put(Fields.SECTION_CONTENT, sectionContent);
+			reply.write(writer);
+			writer.newLine();
+			writer.flush();
 		} else {
-			// send error
+			// TODO: send error
 		}
 	}
 }

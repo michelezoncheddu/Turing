@@ -176,7 +176,7 @@ public class Connection {
 		req.put(Fields.OPERATION, Fields.OPERATION_EDIT_SECTION);
 		req.put(Fields.DOCUMENT_NAME, document.getName());
 		req.put(Fields.DOCUMENT_CREATOR, document.getCreator());
-		req.put(Fields.DOCUMENT_SECTION, section + 1);
+		req.put(Fields.DOCUMENT_SECTION, section);
 
 		// send request and wait reply
 		try {
@@ -188,7 +188,7 @@ public class Connection {
 			Client.frame.showErrorDialog("Communication error", e);
 			return;
 		}
-		JOptionPane.showMessageDialog(Client.frame, section + 1);
-		// TODO: continue implementation
+		JSONObject reply = new JSONObject(jsonString);
+		Client.frame.createEditingSpace((String) reply.get(Fields.SECTION_CONTENT));
 	}
 }
