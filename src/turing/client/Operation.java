@@ -18,7 +18,7 @@ public class Operation {
 	/**
 	 * Checks the reply
 	 */
-	private static boolean isSuccessful(JSONObject reply) {
+	private static boolean checkError(JSONObject reply) {
 		if (reply.get(Fields.STATUS).equals(Fields.STATUS_ERR)) {
 			Client.frame.showErrorDialog((String) reply.get(Fields.ERR_MSG));
 			return false;
@@ -42,7 +42,7 @@ public class Operation {
 				.put(Fields.PASSWORD, password);
 
 		JSONObject reply = connection.requestReply(request);
-		if (!isSuccessful(reply))
+		if (checkError(reply))
 			return;
 
 		Client.frame.createWorkspace(); // create the workspace window
@@ -58,7 +58,8 @@ public class Operation {
 		request.put(Fields.OPERATION, Fields.OPERATION_LIST);
 
 		JSONObject reply = connection.requestReply(request);
-		// if (!isSuccessful(reply)) return; // TODO
+		if (checkError(reply))
+			return;
 
 		Client.frame.clearTables();
 		connection.downloadTablesData((Integer) reply.get(Fields.INCOMING_MESSAGES));
@@ -75,7 +76,8 @@ public class Operation {
 				.put(Fields.NUMBER_OF_SECTIONS, sections);
 
 		JSONObject reply = connection.requestReply(request);
-		// if (!isSuccessful(reply)) return; // TODO
+		if (checkError(reply))
+			return;
 
 		Operation.list(); // updating table data
 	}
@@ -97,7 +99,8 @@ public class Operation {
 				.put(Fields.DOCUMENT_SECTION, section);
 
 		JSONObject reply = connection.requestReply(request);
-		// if (!isSuccessful(reply)) return; // TODO
+		if (checkError(reply))
+			return;
 
 		Client.frame.createEditingSpace((String) reply.get(Fields.SECTION_CONTENT));
 	}
@@ -112,11 +115,10 @@ public class Operation {
 				.put(Fields.SECTION_CONTENT, sectionContent);
 
 		JSONObject reply = connection.requestReply(request);
-		// if (!isSuccessful(reply)) return; // TODO
+		if (checkError(reply))
+			return;
 
-		if (reply.get(Fields.STATUS).equals(Fields.STATUS_OK)) { // TODO: check with isSuccessful
-			Client.frame.createWorkspace();
-			Operation.list();
-		}
+		Client.frame.createWorkspace();
+		Operation.list();
 	}
 }
