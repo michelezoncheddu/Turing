@@ -16,29 +16,22 @@ public class UserManager extends RemoteServer implements UserManagerAPI {
 	/**
 	 * Registers a new user
 	 */
-	@Override
 	public boolean signUp(String username, String password) throws RemoteException {
 		return users.putIfAbsent(username, new User(username, password)) == null;
 	}
 
 	/**
-	 * TO DO
+	 * Logs in an user
 	 */
-	public boolean logIn(String username, String password) {
+	public User logIn(String username, String password) {
 		User user = users.get(username);
-		if (user == null)
-			return false;
+		if (user == null) // inexistent user
+			return null;
 
 		if (user.getPassword().equals(password))
-			return user.setOnline(true); // setOnline is thread safe
+			if (user.setOnline(true)) // setOnline is thread safe
+				return user;
 
-		return false;
-	}
-
-	/**
-	 * TO DO
-	 */
-	public User getUser(String name) {
-		return users.get(name);
+		return null; // wrong password or user already logged
 	}
 }

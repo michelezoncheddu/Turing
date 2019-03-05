@@ -69,7 +69,7 @@ public class ClientHandler implements Runnable {
 						}
 					}
 					currentUser.setEditingSection(null);
-					currentUser = null; // make thread ready for another client
+					currentUser = null;
 				}
 				try {
 					reader.close();
@@ -87,7 +87,7 @@ public class ClientHandler implements Runnable {
 			try {
 				handleOperation(req);
 			} catch (IOException e) {
-				e.printStackTrace(); // TODO: specify problem and send a generic error to client
+				e.printStackTrace(); // can't communicate to the client
 			}
 		}
 
@@ -104,27 +104,39 @@ public class ClientHandler implements Runnable {
 	}
 
 	/**
-	 * Sends a status message to the client
+	 * Sends a ack message to the client
 	 */
-	private void sendStatusMessage(String status) throws IOException {
+	private void sendAck() throws IOException {
 		JSONObject message = new JSONObject();
-		message.put(Fields.STATUS, status);
-		message.write(writer);
+		message.put(Fields.STATUS, Fields.STATUS_OK);
+		writer.write(message.toString());
 		writer.newLine();
 		writer.flush();
 	}
 
 	/**
-	 * Sorts the request to the handlers
+	 * Sends a error message to the client
 	 */
-	private void handleOperation(JSONObject req) throws IOException {
-		switch ((String) req.get(Fields.OPERATION)) {
+	private void sendError(String msg) throws IOException {
+		JSONObject message = new JSONObject();
+		message.put(Fields.STATUS, Fields.STATUS_ERR)
+				.put(Fields.ERR_MSG, msg);
+		writer.write(message.toString());
+		writer.newLine();
+		writer.flush();
+	}
+
+	/**
+	 * Switches the request to the handlers
+	 */
+	private void handleOperation(JSONObject request) throws IOException {
+		switch ((String) request.get(Fields.OPERATION)) {
 		case Fields.OPERATION_LOGIN:
-			login(req);
+			login(request);
 			break;
 
 		case Fields.OPERATION_CREATE_DOC:
-			createDoc(req);
+			createDoc(request);
 			break;
 
 		case Fields.OPERATION_LIST:
@@ -132,33 +144,32 @@ public class ClientHandler implements Runnable {
 			break;
 
 		case Fields.OPERATION_EDIT_SECTION:
-			editSection(req);
+			editSection(request);
 			break;
 
 		case Fields.OPERATION_END_EDIT:
-			endEdit(req);
+			endEdit(request);
 			break;
 
 		default:
-			System.err.println("Operation " + req.get(Fields.OPERATION) + " unknown");
+			System.err.println("Operation " + request.get(Fields.OPERATION) + " unknown");
 		}
 	}
 
 	/**
 	 * Implements the login operation
 	 */
-	private void login(JSONObject req) throws IOException {
-		String username = (String) req.get(Fields.USERNAME);
-		String password = (String) req.get(Fields.PASSWORD);
+	private void login(JSONObject request) throws IOException {
+		// parsing request
+		String username = (String) request.get(Fields.USERNAME);
+		String password = (String) request.get(Fields.PASSWORD);
 
 		// try to log user
-		boolean success = Server.userManager.logIn(username, password);
-		if (success) {
-			currentUser = Server.userManager.getUser(username);
-			sendStatusMessage(Fields.STATUS_OK);
+		if ((currentUser = Server.userManager.logIn(username, password)) != null) {
+			sendAck();
 			out.println(Thread.currentThread() + " " + currentUser.getUsername() + " connected");
 		} else {
-			sendStatusMessage(Fields.STATUS_ERR);
+			sendError("Can't connect"); // TODO: specify error
 			out.println(Thread.currentThread() + " can't connect " + username);
 		}
 	}
@@ -166,47 +177,51 @@ public class ClientHandler implements Runnable {
 	/**
 	 * Implements the create document operation
 	 */
-	private void createDoc(JSONObject req) throws IOException {
-		String docName = (String) req.get(Fields.DOCUMENT_NAME);
-		int sections = (Integer) req.get(Fields.NUMBER_OF_SECTIONS);
+	private void createDoc(JSONObject request) throws IOException {
+		// parsing request
+		String docName = (String) request.get(Fields.DOCUMENT_NAME);
+		int sections = (Integer) request.get(Fields.NUMBER_OF_SECTIONS);
+
+		// creating the new document
 		Document newDoc;
 		try {
 			newDoc = new Document(docName, currentUser, sections);
 		} catch (PreExistentDocumentException e) {
-			sendStatusMessage(Fields.STATUS_ERR);
+			sendError("Document already created");
 			return;
 		}
 		currentUser.myDocuments.add(newDoc);
 		Server.documentManager.add(newDoc);
-		sendStatusMessage(Fields.STATUS_OK);
+		sendAck();
 	}
 
 	/**
 	 * Implements the list operation
 	 */
 	private void list() throws IOException {
-		JSONObject msg = new JSONObject();
+		JSONObject message = new JSONObject();
+		JSONObject document;
 
 		synchronized (currentUser.sharedDocuments) {
-			msg.put(Fields.INCOMING_MESSAGES, currentUser.myDocuments.size() + currentUser.sharedDocuments.size());
-			msg.write(writer);
+			message.put(Fields.INCOMING_MESSAGES, currentUser.myDocuments.size() + currentUser.sharedDocuments.size());
+			writer.write(message.toString());
 			writer.newLine();
 			for (Document myDoc : currentUser.myDocuments) {
-				JSONObject doc = new JSONObject();
-				doc.put("name", myDoc.getName());
-				doc.put("creator", myDoc.getCreator().getUsername());
-				doc.put("sections", myDoc.getNumberOfSections());
-				doc.put("shared", "no"); // TODO: maybe yes
-				doc.write(writer);
+				document = new JSONObject();
+				document.put(Fields.DOCUMENT_NAME, myDoc.getName())
+						.put(Fields.DOCUMENT_CREATOR, myDoc.getCreator().getUsername())
+						.put(Fields.NUMBER_OF_SECTIONS, myDoc.getNumberOfSections())
+						.put(Fields.IS_SHARED, myDoc.isShared());
+				writer.write(document.toString());
 				writer.newLine();
 			}
 			for (Document sharedDoc : currentUser.sharedDocuments) {
-				JSONObject doc = new JSONObject();
-				doc.put("name", sharedDoc.getName());
-				doc.put("creator", sharedDoc.getCreator().getUsername());
-				doc.put("sections", sharedDoc.getNumberOfSections());
-				doc.put("shared", "yes");
-				doc.write(writer);
+				document = new JSONObject();
+				document.put(Fields.DOCUMENT_NAME, sharedDoc.getName())
+						.put(Fields.DOCUMENT_CREATOR, sharedDoc.getCreator().getUsername())
+						.put(Fields.NUMBER_OF_SECTIONS, sharedDoc.getNumberOfSections())
+						.put(Fields.IS_SHARED, true);
+				writer.write(document.toString());
 				writer.newLine();
 			}
 		}
@@ -216,74 +231,69 @@ public class ClientHandler implements Runnable {
 	/**
 	 * Implements the edit section operation
 	 */
-	private void editSection(JSONObject req) throws IOException {
+	private void editSection(JSONObject request) throws IOException {
 		if (currentUser.getEditingSection() != null) {
-			// TODO: send error
+			sendError("You're already editing a section");
 			return;
 		}
 
-		String creator = (String) req.get(Fields.DOCUMENT_CREATOR);
-		String docName = (String) req.get(Fields.DOCUMENT_NAME);
-		int sectionNumber = (Integer) req.get(Fields.DOCUMENT_SECTION);
+		// parsing request
+		String creator = (String) request.get(Fields.DOCUMENT_CREATOR);
+		String docName = (String) request.get(Fields.DOCUMENT_NAME);
+		int sectionNumber = (Integer) request.get(Fields.DOCUMENT_SECTION);
 
 		Document document;
 		try {
 			document = Server.documentManager.get(currentUser, creator, docName);
-		} catch (UserNotAllowedException e) { // TODO: send error to client
+		} catch (UserNotAllowedException e) {
+			sendError("Permission denied");
 			System.err.println(currentUser + " not allowed to modify " + docName);
 			return;
-		} catch (InexistentDocumentException e) { // TODO: send error to client
+		} catch (InexistentDocumentException e) {
+			sendError("Inexistent document");
 			System.err.println(docName + " inexistent");
 			return;
 		}
 
 		Section section = document.getSection(sectionNumber);
-		if (section == null)
-			return; // TODO: send error to client, inexistent section
+		if (section == null) {
+			sendError("Inexisten section");
+			return;
+		}
 
+		// check if section is unlocked
 		if (section.startEdit(currentUser)) {
-			currentUser.setEditingSection(section);
-			JSONObject reply = new JSONObject();
+			currentUser.setEditingSection(section); // lock user
+
+			// send section content
 			String content = section.getContent();
+			JSONObject reply = new JSONObject();
 			reply.put(Fields.SECTION_CONTENT, content);
-			reply.write(writer);
+			writer.write(reply.toString());
 			writer.newLine();
 			writer.flush();
 		} else {
-			// TODO: send error
+			sendError("Another user is editing this section");
 		}
 	}
 
 	/**
 	 * Implements the end edit operation
 	 */
-	private void endEdit(JSONObject req) throws IOException {
-		if (currentUser.getEditingSection() == null) {
-			// TODO: send error
+	private void endEdit(JSONObject request) throws IOException {
+		Section section = currentUser.getEditingSection();
+
+		// user isn't editing any section
+		if (section == null) {
+			sendError("You're not editing any section");
 			return;
 		}
 
-		String creator = (String) req.get(Fields.DOCUMENT_CREATOR);
-		String docName = (String) req.get(Fields.DOCUMENT_NAME);
-		int sectionNumber = (Integer) req.get(Fields.DOCUMENT_SECTION);
-		String content = req.has(Fields.SECTION_CONTENT) ? (String) req.get(Fields.SECTION_CONTENT) : null;
+		// new section content
+		String content = request.has(Fields.SECTION_CONTENT) ? (String) request.get(Fields.SECTION_CONTENT) : null;
 
-		Document document;
-		try {
-			document = Server.documentManager.get(currentUser, creator, docName);
-		} catch (UserNotAllowedException e) { // TODO: send error to client
-			System.err.println(currentUser + " not allowed to modify " + docName);
-			return;
-		} catch (InexistentDocumentException e) { // TODO: send error to client
-			System.err.println(docName + " inexistent");
-			return;
-		}
-
-		Section section = document.getSection(sectionNumber);
-		if (section == null)
-			return; // TODO: send error to client, inexistent section
-
-		section.endEdit(currentUser, content);
-		currentUser.setEditingSection(null);
+		section.endEdit(currentUser, content); // unlock section
+		currentUser.setEditingSection(null);   // unlock user
+		sendAck();
 	}
 }

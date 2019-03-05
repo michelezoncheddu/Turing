@@ -5,14 +5,14 @@ import java.nio.file.*;
 import java.util.List;
 
 public class Section {
-	private String path;
+	private Path path;
 	private User editingUser = null; // which is currently editing
 
 	/**
 	 * Creates a new section
 	 */
 	public Section(String path) {
-		this.path = path;
+		this.path = Paths.get(path);
 	}
 
 	/**
@@ -34,20 +34,18 @@ public class Section {
 		if (editingUser != user)
 			return;
 
-		editingUser = null;
+		editingUser = null; // unlock section
 
-		if (content == null)
+		if (content == null) // discard changes
 			return;
 
-		Path path = Paths.get(this.path);
-		Files.writeString(path, content, StandardOpenOption.WRITE);
+		Files.writeString(path, content, StandardOpenOption.TRUNCATE_EXISTING);
 	}
 
 	/**
 	 * Returns the content of the section
 	 */
 	public String getContent() throws IOException {
-		Path path = Paths.get(this.path);
 		StringBuilder data = new StringBuilder();
 		List<String> list = Files.readAllLines(path);
 		for (String line : list) {

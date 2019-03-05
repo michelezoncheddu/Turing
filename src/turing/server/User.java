@@ -46,7 +46,7 @@ public class User {
 	}
 
 	/**
-	 * TO DO
+	 * Sets the online status
 	 */
 	public synchronized boolean setOnline(boolean newStatus) {
 		if (online == newStatus)
@@ -56,7 +56,7 @@ public class User {
 	}
 
 	/**
-	 * TO DO
+	 * Sets the currently editing section
 	 */
 	public void setEditingSection(Section section) {
 		editingSection = section;

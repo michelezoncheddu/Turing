@@ -49,6 +49,7 @@ public class Document {
 	public String getName() { return name; }
 	public User getCreator() { return creator; }
 	public int getNumberOfSections() { return sections.length; }
+	public boolean isShared() { return !allowedUsers.isEmpty(); }
 
 	/**
 	 * Returns the specified section
@@ -64,5 +65,15 @@ public class Document {
 	 */
 	public boolean isEditableBy(User user) {
 		return user == creator || allowedUsers.contains(user); // TODO: more secure checking only usernames?
+	}
+
+	/**
+	 * Share the document with another user
+	 */
+	public boolean shareWith(User user) {
+		if (user == creator || allowedUsers.contains(user)) // already shared
+			return false;
+		allowedUsers.add(user);
+		return true;
 	}
 }

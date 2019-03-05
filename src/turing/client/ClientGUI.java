@@ -56,6 +56,7 @@ public class ClientGUI extends JFrame {
 			System.exit(0);
 		}
 
+		Operation.setConnection(connection);
 		documents = new ArrayList<>();
 
 		int width = (int) (screen.width * 0.3);
@@ -91,7 +92,7 @@ public class ClientGUI extends JFrame {
 		JButton signupButton = new JButton("Sign up");
 		JButton loginButton = new JButton("Log in");
 		signupButton.addActionListener(event -> connection.signUp(usernameField.getText().trim(), passwordField.getText()));
-		loginButton.addActionListener(event -> connection.logIn(usernameField.getText().trim(), passwordField.getText()));
+		loginButton.addActionListener(event -> Operation.logIn(usernameField.getText().trim(), passwordField.getText()));
 		buttonsPanel.add(signupButton);
 		buttonsPanel.add(loginButton);
 
@@ -145,10 +146,10 @@ public class ClientGUI extends JFrame {
 		createDocumentButton.addActionListener(event -> createDocument());
 		//showDocumentButton.addActionListener(event -> showDocument());
 		//showSectionButton.addActionListener(event -> showSection());
-		editSectionButton.addActionListener(event -> connection.editSection(lastSelectedDocument, lastSelectedSection));
+		editSectionButton.addActionListener(event -> Operation.editSection(lastSelectedDocument, lastSelectedSection));
 		//endEditButton.addActionListener(event -> foo());
 		//inviteButton.addActionListener(event -> bar());
-		refreshButton.addActionListener(event -> connection.list());
+		refreshButton.addActionListener(event -> Operation.list());
 		buttonsPanel.add(createDocumentButton);
 		buttonsPanel.add(showDocumentButton);
 		buttonsPanel.add(showSectionButton);
@@ -213,24 +214,24 @@ public class ClientGUI extends JFrame {
 		// buttonsPanel
 		JButton endEditButton = new JButton("End edit");
 		JButton discardChangesButton = new JButton("Discard changes");
-		endEditButton.addActionListener(event ->
-				connection.endEdit(lastSelectedDocument, lastSelectedSection, editingArea.getText()));
+		endEditButton.addActionListener(event -> Operation.endEdit(editingArea.getText()));
+		discardChangesButton.addActionListener(event -> Operation.endEdit(null));
 		buttonsPanel.add(endEditButton);
 		buttonsPanel.add(discardChangesButton);
 
 		// editingPanel
 		editingArea.setWrapStyleWord(true);
 		JScrollPane editingScroll = new JScrollPane (editingArea,
-				JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+				JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		editingPanel.add(editingScroll, BorderLayout.CENTER);
 
 		// chatPanel
-		JTextArea chatArea = new JTextArea("No messages", 32, 24);
-		JTextField chatField = new JTextField("Write here");
+		JTextArea chatArea = new JTextArea("No messages yet", 32, 24);
+		JTextField chatField = new JTextField("Message");
 		JButton sendButton = new JButton("Send");
 		chatArea.setEditable(false);
 		JScrollPane chatScroll = new JScrollPane (chatArea,
-				JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+				JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		chatPanel.add(chatScroll, BorderLayout.NORTH);
 		chatPanel.add(chatField, BorderLayout.CENTER);
 		chatPanel.add(sendButton, BorderLayout.SOUTH);
@@ -279,14 +280,14 @@ public class ClientGUI extends JFrame {
 		}
 
 		// creating document
-		connection.createDocument(documentName, sections);
+		Operation.createDocument(documentName, sections);
 	}
 
 	/**
 	 * Adds a document in the documents table and in the documents list
 	 */
 	public void addDocument(Document document) {
-		Object[] tableData = {document.getName(), document.getCreator(), "n.d.", "n.d."}; // TODO: unused fields
+		Object[] tableData = {document.getName(), document.getCreator(), "n.d.", document.isShared()}; // TODO: unused fields
 		documentsTableModel.addRow(tableData);
 		documents.add(document);
 	}
@@ -299,7 +300,7 @@ public class ClientGUI extends JFrame {
 		lastSelectedDocument = documents.get(documentIndex);
 		lastSelectedSection = -1;
 		for (int i = 0; i < documents.get(documentIndex).getSections(); i++) {
-			Object[] data = {documents.get(documentIndex).getName() + " - section " + i + 1, "n.d."}; // TODO: unused field
+			Object[] data = {documents.get(documentIndex).getName() + " - section " + (i + 1), "n.d."}; // TODO: unused field
 			sectionsTableModel.addRow(data);
 		}
 	}
