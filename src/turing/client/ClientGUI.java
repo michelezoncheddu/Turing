@@ -308,9 +308,8 @@ public class ClientGUI extends JFrame {
 	/**
 	 * Shows an error window with an error message and description
 	 */
-	public void showErrorDialog(String message, Exception e) {
-		JOptionPane.showMessageDialog(Client.frame, message + e.getMessage(),
-				"Error", JOptionPane.ERROR_MESSAGE);
+	public void showErrorDialog(String message) {
+		JOptionPane.showMessageDialog(Client.frame, message,"Error", JOptionPane.ERROR_MESSAGE);
 	}
 
 	/**

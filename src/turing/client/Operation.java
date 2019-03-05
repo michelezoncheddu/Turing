@@ -20,7 +20,7 @@ public class Operation {
 	 */
 	private static boolean isSuccessful(JSONObject reply) {
 		if (reply.get(Fields.STATUS).equals(Fields.STATUS_ERR)) {
-			Client.frame.showErrorDialog((String) reply.get(Fields.ERR_MSG), null);
+			Client.frame.showErrorDialog((String) reply.get(Fields.ERR_MSG));
 			return false;
 		}
 		return true;

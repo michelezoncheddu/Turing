@@ -59,9 +59,9 @@ public class Connection {
 				JOptionPane.showMessageDialog(Client.frame, "Can't register " + username,
 						"Error", JOptionPane.ERROR_MESSAGE); // TODO: specify error and exceptions
 		} catch (RemoteException e) {
-			Client.frame.showErrorDialog("Communication error", e);
+			Client.frame.showErrorDialog("Communication error");
 		} catch (NotBoundException e) {
-			Client.frame.showErrorDialog("Unable to find registration service", e);
+			Client.frame.showErrorDialog("Unable to find registration service");
 		}
 	}
 
@@ -78,7 +78,7 @@ public class Connection {
 			writer.flush();
 			replyString = reader.readLine();
 		} catch (IOException e) {
-			Client.frame.showErrorDialog("Communication error", e);
+			Client.frame.showErrorDialog("Communication error");
 			return null;
 		}
 		return new JSONObject(replyString);
@@ -94,7 +94,7 @@ public class Connection {
 			try {
 				messageString = reader.readLine();
 			} catch (IOException e) {
-				Client.frame.showErrorDialog("Communication error", e);
+				Client.frame.showErrorDialog("Communication error");
 				return;
 			}
 			jsonDoc = new JSONObject(messageString);
