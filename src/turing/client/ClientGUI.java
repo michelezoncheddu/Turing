@@ -232,6 +232,7 @@ public class ClientGUI extends JFrame {
 		chatArea.setEditable(false);
 		JScrollPane chatScroll = new JScrollPane (chatArea,
 				JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		sendButton.addActionListener(event -> Operation.sendMessage(chatField.getText()));
 		chatPanel.add(chatScroll, BorderLayout.NORTH);
 		chatPanel.add(chatField, BorderLayout.CENTER);
 		chatPanel.add(sendButton, BorderLayout.SOUTH);

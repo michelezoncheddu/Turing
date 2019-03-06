@@ -7,19 +7,21 @@ import java.util.AbstractMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class DocumentManager {
-	private AbstractMap<String, Document> documents = new ConcurrentHashMap<>();
+	private static AbstractMap<String, Document> documents = new ConcurrentHashMap<>();
+
+	private DocumentManager() {}
 
 	/**
 	 * TO DO
 	 */
-	public void add(Document document) {
+	public static void add(Document document) {
 		documents.putIfAbsent(createKey(document), document);
 	}
 
 	/**
 	 * TO DO
 	 */
-	public Document get(User user, String creator, String docName)
+	public static Document get(User user, String creator, String docName)
 			throws UserNotAllowedException, InexistentDocumentException {
 		Document document = documents.get(createKey(creator, docName));
 		if (document == null)
@@ -35,14 +37,14 @@ public class DocumentManager {
 	/**
 	 * TO DO
 	 */
-	private String createKey(Document document) {
+	private static String createKey(Document document) {
 		return document.getCreator().getUsername() + document.getName();
 	}
 
 	/**
 	 * TO DO
 	 */
-	private String createKey(String creator, String docName) {
+	private static String createKey(String creator, String docName) {
 		return creator + docName;
 	}
 }

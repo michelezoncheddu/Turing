@@ -6,7 +6,7 @@ import turing.Fields;
 import javax.swing.*;
 
 public class Operation {
-	private static Connection connection;
+	private static Connection connection; // connection with the server
 
 	/**
 	 * Sets the connection
@@ -18,12 +18,8 @@ public class Operation {
 	/**
 	 * Checks the reply
 	 */
-	private static boolean checkError(JSONObject reply) {
-		if (reply.get(Fields.STATUS).equals(Fields.STATUS_ERR)) {
-			Client.frame.showErrorDialog((String) reply.get(Fields.ERR_MSG));
-			return false;
-		}
-		return true;
+	private static boolean isErrorMessage(JSONObject reply) {
+		return reply.get(Fields.STATUS).equals(Fields.STATUS_ERR);
 	}
 
 	/**
@@ -42,8 +38,10 @@ public class Operation {
 				.put(Fields.PASSWORD, password);
 
 		JSONObject reply = connection.requestReply(request);
-		if (checkError(reply))
-			return;
+		if (isErrorMessage(reply)) {
+			Client.frame.showErrorDialog((String) reply.get(Fields.ERR_MSG));
+			System.exit(0);
+		}
 
 		Client.frame.createWorkspace(); // create the workspace window
 		Operation.list();
@@ -58,8 +56,10 @@ public class Operation {
 		request.put(Fields.OPERATION, Fields.OPERATION_LIST);
 
 		JSONObject reply = connection.requestReply(request);
-		if (checkError(reply))
+		if (isErrorMessage(reply)) {
+			Client.frame.showErrorDialog((String) reply.get(Fields.ERR_MSG));
 			return;
+		}
 
 		Client.frame.clearTables();
 		connection.downloadTablesData((Integer) reply.get(Fields.INCOMING_MESSAGES));
@@ -76,8 +76,10 @@ public class Operation {
 				.put(Fields.NUMBER_OF_SECTIONS, sections);
 
 		JSONObject reply = connection.requestReply(request);
-		if (checkError(reply))
+		if (isErrorMessage(reply)) {
+			Client.frame.showErrorDialog((String) reply.get(Fields.ERR_MSG));
 			return;
+		}
 
 		Operation.list(); // updating table data
 	}
@@ -99,8 +101,10 @@ public class Operation {
 				.put(Fields.DOCUMENT_SECTION, section);
 
 		JSONObject reply = connection.requestReply(request);
-		if (checkError(reply))
+		if (isErrorMessage(reply)) {
+			Client.frame.showErrorDialog((String) reply.get(Fields.ERR_MSG));
 			return;
+		}
 
 		Client.frame.createEditingSpace((String) reply.get(Fields.SECTION_CONTENT));
 	}
@@ -115,10 +119,26 @@ public class Operation {
 				.put(Fields.SECTION_CONTENT, sectionContent);
 
 		JSONObject reply = connection.requestReply(request);
-		if (checkError(reply))
+		if (isErrorMessage(reply)) {
+			Client.frame.showErrorDialog((String) reply.get(Fields.ERR_MSG));
 			return;
+		}
 
 		Client.frame.createWorkspace();
 		Operation.list();
+	}
+
+	/**
+	 * Performs the send of a chat message
+	 */
+	public static void sendMessage(String message) {
+		// create and edit request
+		JSONObject request = new JSONObject();
+		request.put(Fields.OPERATION, Fields.OPERATION_CHAT_MSG)
+				.put(Fields.CHAT_MSG, message);
+
+		JSONObject reply = connection.requestReply(request);
+		if (isErrorMessage(reply))
+			Client.frame.showErrorDialog((String) reply.get(Fields.ERR_MSG));
 	}
 }

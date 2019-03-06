@@ -19,9 +19,9 @@ import static java.lang.System.out;
  */
 public class Server implements Runnable {
 	static final String DOCS_ROOT = "docs";
+	static final int    CHAT_PORT = 1101;
 
 	// global managers
-	static DocumentManager           documentManager;
 	static UserManager               userManager;
 	static ServerNotificationManager notificationManager;
 
@@ -30,9 +30,8 @@ public class Server implements Runnable {
 	 */
 	@Override
 	public void run() {
-		int    DEFAULT_PORT        = 1100;
-		boolean      stop                = false;
-		documentManager     = new DocumentManager();
+		int DEFAULT_PORT = 1100;
+		boolean stop = false; // TODO: stop function
 		userManager         = new UserManager();
 		notificationManager = new ServerNotificationManager();
 		exportObjects(userManager, notificationManager);
@@ -49,6 +48,8 @@ public class Server implements Runnable {
 			e.printStackTrace();
 			return;
 		}
+
+		System.setProperty("java.net.preferIPv4Stack", "true");
 
 		out.println("Server ready, waiting for connections...");
 

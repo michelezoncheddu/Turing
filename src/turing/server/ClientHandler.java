@@ -8,7 +8,7 @@ import turing.server.exceptions.PreExistentDocumentException;
 import turing.server.exceptions.UserNotAllowedException;
 
 import java.io.*;
-import java.net.Socket;
+import java.net.*;
 import java.nio.charset.StandardCharsets;
 
 import static java.lang.System.out;
@@ -82,7 +82,7 @@ public class ClientHandler implements Runnable {
 				break;
 			}
 
-			// TODO: validate messages structure, check if user is online and currentUser is the same inside req
+			// TODO: validate messages format, check if user is NOT NULL and online and currentUser is the same inside req
 			JSONObject req = new JSONObject(reqString);
 			try {
 				handleOperation(req);
@@ -151,6 +151,10 @@ public class ClientHandler implements Runnable {
 			endEdit(request);
 			break;
 
+		case Fields.OPERATION_CHAT_MSG:
+			chatMsg(request);
+			break;
+
 		default:
 			System.err.println("Operation " + request.get(Fields.OPERATION) + " unknown");
 		}
@@ -191,7 +195,7 @@ public class ClientHandler implements Runnable {
 			return;
 		}
 		currentUser.myDocuments.add(newDoc);
-		Server.documentManager.add(newDoc);
+		DocumentManager.add(newDoc);
 		sendAck();
 	}
 
@@ -203,6 +207,7 @@ public class ClientHandler implements Runnable {
 		JSONObject document;
 
 		synchronized (currentUser.sharedDocuments) {
+			message.put(Fields.STATUS, Fields.STATUS_OK);
 			message.put(Fields.INCOMING_MESSAGES, currentUser.myDocuments.size() + currentUser.sharedDocuments.size());
 			writer.write(message.toString());
 			writer.newLine();
@@ -244,7 +249,7 @@ public class ClientHandler implements Runnable {
 
 		Document document;
 		try {
-			document = Server.documentManager.get(currentUser, creator, docName);
+			document = DocumentManager.get(currentUser, creator, docName);
 		} catch (UserNotAllowedException e) {
 			sendError("Permission denied");
 			System.err.println(currentUser + " not allowed to modify " + docName);
@@ -268,7 +273,9 @@ public class ClientHandler implements Runnable {
 			// send section content
 			String content = section.getContent();
 			JSONObject reply = new JSONObject();
-			reply.put(Fields.SECTION_CONTENT, content);
+			reply.put(Fields.STATUS, Fields.STATUS_OK)
+					.put(Fields.SECTION_CONTENT, content)
+					.put(Fields.CHAT_ADDRESS, document.getChatAddress());
 			writer.write(reply.toString());
 			writer.newLine();
 			writer.flush();
@@ -294,6 +301,22 @@ public class ClientHandler implements Runnable {
 
 		section.endEdit(currentUser, content); // unlock section
 		currentUser.setEditingSection(null);   // unlock user
+		sendAck();
+	}
+
+	/**
+	 * Implements the send of a chat message
+	 */
+	private void chatMsg(JSONObject request) throws IOException {
+		Section section = currentUser.getEditingSection();
+
+		// user isn't editing any section
+		if (section == null) {
+			sendError("You have to edit a section before using the chat");
+			return;
+		}
+
+		section.getParent().sendMessage((String) request.get(Fields.CHAT_MSG));
 		sendAck();
 	}
 }

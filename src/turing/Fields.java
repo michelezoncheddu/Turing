@@ -8,6 +8,7 @@ public final class Fields {
 	public static final String OPERATION_EDIT_SECTION = "operation_edit_section";
 	public static final String OPERATION_END_EDIT     = "operation_end_edit";
 	public static final String OPERATION_LIST         = "operation_list";
+	public static final String OPERATION_CHAT_MSG     = "operation_chat_msg";
 
 	public static final String INCOMING_MESSAGES = "incoming_messages";
 
@@ -24,4 +25,6 @@ public final class Fields {
 	public static final String NUMBER_OF_SECTIONS = "number_of_sections";
 	public static final String SECTION_CONTENT    = "section_content";
 	public static final String IS_SHARED          = "is_shared";
+	public static final String CHAT_ADDRESS       = "chat_address";
+	public static final String CHAT_MSG           = "chat_msg";
 }
