@@ -84,6 +84,9 @@ public class Server implements Runnable {
 
 	/**
 	 * Exports the remote objects
+	 *
+	 * @param userManager         the user manager to export
+	 * @param notificationManager the notification manager to export
 	 */
 	private void exportObjects(UserManagerAPI userManager, ServerNotificationManagerAPI notificationManager) {
 		int    RMI_PORT            = 1099;

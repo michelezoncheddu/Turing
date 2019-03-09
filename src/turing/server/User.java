@@ -21,6 +21,9 @@ public class User {
 
 	/**
 	 * Creates a new user
+	 *
+	 * @param username the user username
+	 * @param password the user password
 	 */
 	public User(String username, String password) {
 		this.username = username;
@@ -32,21 +35,49 @@ public class User {
 		this.editingSection = null;
 	}
 
+	/**
+	 * Returns the user username
+	 *
+	 * @return the user username
+	 */
 	public String getUsername() {
 		return username;
 	}
+
+	/**
+	 * Returns the user password
+	 *
+	 * @return the user password
+	 */
 	public String getPassword() {
 		return password;
 	}
+
+	/**
+	 * Returns the user online status
+	 *
+	 * @return the user online status
+	 */
 	public boolean isOnline() {
 		return online;
 	}
+
+	/**
+	 * Return the section currently editing by the user
+	 *
+	 * @return the section that is currently editing
+	 */
 	public Section getEditingSection() {
 		return editingSection;
 	}
 
 	/**
 	 * Sets the online status
+	 *
+	 * @param newStatus the new online status
+	 *
+	 * @return true if has been possibile to change the online status
+	 *         false otherwise
 	 */
 	public synchronized boolean setOnline(boolean newStatus) {
 		if (online == newStatus)
@@ -56,7 +87,9 @@ public class User {
 	}
 
 	/**
-	 * Sets the currently editing section
+	 * Sets the currently editing section by the user
+	 *
+	 * @param section the section that is currently editing
 	 */
 	public void setEditingSection(Section section) {
 		editingSection = section;

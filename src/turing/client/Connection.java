@@ -17,7 +17,7 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 
 /**
- * Implements the connection and the operations with the server
+ * Implements the connection and the communication with the server
  */
 public class Connection {
 
@@ -27,18 +27,24 @@ public class Connection {
 
 	/**
 	 * Initializes the connection with the server
+	 *
+	 * @param address
+	 * @throws IOException
 	 */
-	public Connection(InetSocketAddress defaultAddress) throws IOException {
+	public Connection(InetSocketAddress address) throws IOException {
 		Socket defaultConnection = new Socket();
-		defaultConnection.connect(defaultAddress);
+		defaultConnection.connect(address);
 		writer = new BufferedWriter(new OutputStreamWriter(defaultConnection.getOutputStream(), StandardCharsets.UTF_8));
 		reader = new BufferedReader(new InputStreamReader(defaultConnection.getInputStream(), StandardCharsets.UTF_8));
 	}
 
 	/**
 	 * Performs the sign up operation
+	 *
+	 * @param username username to register
+	 * @param password user's password
 	 */
-	public void signUp(String username, String password) {
+	public void signUp(String username, String password) { // TODO: move to Operation class
 		if (username.isBlank() || password.isBlank())
 			return;
 
@@ -67,6 +73,9 @@ public class Connection {
 
 	/**
 	 * Executes the request/reply protocol
+	 *
+	 * @param request the message to send
+	 * @return the reply message
 	 */
 	public JSONObject requestReply(JSONObject request) {
 		String replyString;
@@ -86,6 +95,8 @@ public class Connection {
 
 	/**
 	 * Downloads the documents table data
+	 *
+	 * @param incomingMessages number of messages to listen for
 	 */
 	public void downloadTablesData(Integer incomingMessages) {
 		String messageString;

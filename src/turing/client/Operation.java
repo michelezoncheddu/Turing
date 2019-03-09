@@ -5,11 +5,16 @@ import turing.Fields;
 
 import javax.swing.*;
 
+/**
+ * Class that performs the client operations
+ */
 public class Operation {
 	private static Connection connection; // connection with the server
 
 	/**
 	 * Sets the connection
+	 *
+	 * @param newConnection connection with the server
 	 */
 	public static void setConnection(Connection newConnection) {
 		connection = newConnection;
@@ -23,7 +28,10 @@ public class Operation {
 	}
 
 	/**
-	 * Implements the log in operation
+	 * Performs the log in operation
+	 *
+	 * @param username username to log in
+	 * @param password user's password
 	 */
 	public static void logIn(String username, String password) {
 		if (username.isBlank() || password.isBlank()) {
@@ -67,6 +75,9 @@ public class Operation {
 
 	/**
 	 * Performs the create document operation
+	 *
+	 * @param documentName name of the document to create
+	 * @param sections     number of sections of the document
 	 */
 	public static void createDocument(String documentName, int sections) {
 		// create create document request
@@ -86,6 +97,9 @@ public class Operation {
 
 	/**
 	 * Performs the edit section operation
+	 *
+	 * @param document document to edit
+	 * @param section  index section to edit
 	 */
 	public static void editSection(Document document, int section) {
 		if (section < 0) {
@@ -111,6 +125,8 @@ public class Operation {
 
 	/**
 	 * Performs the end edit operation
+	 *
+	 * @param sectionContent the new section content
 	 */
 	public static void endEdit(String sectionContent) {
 		// create end edit request
@@ -130,6 +146,8 @@ public class Operation {
 
 	/**
 	 * Performs the send of a chat message
+	 *
+	 * @param message the message to send
 	 */
 	public static void sendMessage(String message) {
 		// create and edit request

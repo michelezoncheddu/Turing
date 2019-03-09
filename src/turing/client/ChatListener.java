@@ -4,14 +4,30 @@ import java.net.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 
+/**
+ * Thread for listening chat messages
+ */
 public class ChatListener implements Runnable {
+	private InetAddress groupAddress;
+
+	/**
+	 * Creates a new chat listener
+	 *
+	 * @param address the address to listen
+	 */
+	public ChatListener(String address) {
+		try {
+			groupAddress = InetAddress.getByName(address);
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
+			groupAddress = null;
+		}
+	}
 
 	@Override
 	public void run() {
 		while (true) {
 			try {
-				InetAddress groupAddress = InetAddress.getByName("239.0.0.0");
-
 				NetworkInterface networkInterface = NetworkInterface.getByInetAddress(InetAddress.getByName("localhost"));
 				DatagramChannel channel = DatagramChannel.open();
 				channel.setOption(StandardSocketOptions.SO_REUSEADDR, true);
@@ -23,7 +39,7 @@ public class ChatListener implements Runnable {
 				byteBuffer.clear();
 				channel.receive(byteBuffer);
 				byteBuffer.flip();
-				System.out.println("Messaggio ricevuto:" + new String(byteBuffer.array()).trim());
+				System.out.println(new String(byteBuffer.array()).trim());
 			} catch (Exception e) {
 				e.printStackTrace();
 			}

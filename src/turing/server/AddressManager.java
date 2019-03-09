@@ -4,12 +4,19 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.TreeSet;
 
+/**
+ * Implements a concurrent multicast address manager
+ */
 public class AddressManager {
 	private static TreeSet<InetAddress> addresses = new TreeSet<>(new InetAddressComparator());
 	private static int c = 0, b = 0, a = 0;
 
+	// singleton
 	private AddressManager() {}
 
+	/**
+	 * Creates and saves a new multicast address
+	 */
 	public static synchronized InetAddress createAddress() {
 		InetAddress address;
 
@@ -34,6 +41,9 @@ public class AddressManager {
 		return null;
 	}
 
+	/**
+	 * Removes the multicast address from the saved ones
+	 */
 	public static void freeAddress(InetAddress address) {
 		addresses.remove(address);
 	}

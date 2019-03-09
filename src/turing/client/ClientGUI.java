@@ -20,9 +20,9 @@ import javax.swing.text.NumberFormatter;
  * Implements the turing client Graphical User Interface
  */
 public class ClientGUI extends JFrame {
-	private Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
+	private Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
-	private Connection connection;
+	private Connection connection; // connection with the server
 
 	private ArrayList<Document> documents;
 	private DefaultTableModel documentsTableModel, sectionsTableModel;
@@ -59,9 +59,9 @@ public class ClientGUI extends JFrame {
 		Operation.setConnection(connection);
 		documents = new ArrayList<>();
 
-		int width = (int) (screen.width * 0.3);
-		int height = (int) (screen.height * 0.25);
-		setBounds(screen.width / 2 - width / 2, screen.height / 2 - height, width, height);
+		int width = (int) (screenSize.width * 0.3);
+		int height = (int) (screenSize.height * 0.25);
+		setBounds(screenSize.width / 2 - width / 2, screenSize.height / 2 - height, width, height);
 
 		// panels
 		JPanel headPanel = new JPanel();
@@ -121,9 +121,9 @@ public class ClientGUI extends JFrame {
 	public void createWorkspace() {
 		setVisible(false);
 		getContentPane().removeAll();
-		int width = (int) (screen.width * 0.8);
-		int height = (int) (screen.height * 0.8);
-		setBounds(screen.width/2 - width/2, screen.height/2 - height/2, width, height);
+		int width = (int) (screenSize.width * 0.8);
+		int height = (int) (screenSize.height * 0.8);
+		setBounds(screenSize.width/2 - width/2, screenSize.height/2 - height/2, width, height);
 		setLayout(new BorderLayout());
 
 		// panels
@@ -294,7 +294,7 @@ public class ClientGUI extends JFrame {
 	}
 
 	/**
-	 * Updates the sections table with the selected document's sections
+	 * Updates the sections table with the selected document sections
 	 */
 	private void updateSectionsTable(int documentIndex) {
 		sectionsTableModel.setRowCount(0);

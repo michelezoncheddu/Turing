@@ -23,6 +23,8 @@ public class ClientHandler implements Runnable {
 
 	/**
 	 * Creates a new client handler with a connection with a client
+	 *
+	 * @param clientConnection the socket for the client communication
 	 */
 	public ClientHandler(Socket clientConnection) {
 		this.clientConnection = clientConnection;
@@ -105,6 +107,8 @@ public class ClientHandler implements Runnable {
 
 	/**
 	 * Sends a ack message to the client
+	 *
+	 * @throws IOException if a network error occurs
 	 */
 	private void sendAck() throws IOException {
 		JSONObject message = new JSONObject();
@@ -116,6 +120,10 @@ public class ClientHandler implements Runnable {
 
 	/**
 	 * Sends a error message to the client
+	 *
+	 * @param msg the explanation of the error to be sent
+	 *
+	 * @throws IOException if a network error occurs
 	 */
 	private void sendError(String msg) throws IOException {
 		JSONObject message = new JSONObject();
@@ -128,6 +136,10 @@ public class ClientHandler implements Runnable {
 
 	/**
 	 * Switches the request to the handlers
+	 *
+	 * @param request the message to handle
+	 *
+	 * @throws IOException if a network error occurs
 	 */
 	private void handleOperation(JSONObject request) throws IOException {
 		switch ((String) request.get(Fields.OPERATION)) {
@@ -162,6 +174,10 @@ public class ClientHandler implements Runnable {
 
 	/**
 	 * Implements the login operation
+	 *
+	 * @param request the client request
+	 *
+	 * @throws IOException if a network error occurs
 	 */
 	private void login(JSONObject request) throws IOException {
 		// parsing request
@@ -180,6 +196,10 @@ public class ClientHandler implements Runnable {
 
 	/**
 	 * Implements the create document operation
+	 *
+	 * @param request the client request
+	 *
+	 * @throws IOException if a network error occurs
 	 */
 	private void createDoc(JSONObject request) throws IOException {
 		// parsing request
@@ -201,6 +221,8 @@ public class ClientHandler implements Runnable {
 
 	/**
 	 * Implements the list operation
+	 *
+	 * @throws IOException if a network error occurs
 	 */
 	private void list() throws IOException {
 		JSONObject message = new JSONObject();
@@ -235,6 +257,10 @@ public class ClientHandler implements Runnable {
 
 	/**
 	 * Implements the edit section operation
+	 *
+	 * @param request the client request
+	 *
+	 * @throws IOException if a network error occurs
 	 */
 	private void editSection(JSONObject request) throws IOException {
 		if (currentUser.getEditingSection() != null) {
@@ -286,6 +312,10 @@ public class ClientHandler implements Runnable {
 
 	/**
 	 * Implements the end edit operation
+	 *
+	 * @param request the client request
+	 *
+	 * @throws IOException if a network error occurs
 	 */
 	private void endEdit(JSONObject request) throws IOException {
 		Section section = currentUser.getEditingSection();
@@ -306,6 +336,10 @@ public class ClientHandler implements Runnable {
 
 	/**
 	 * Implements the send of a chat message
+	 *
+	 * @param request the client request
+	 *
+	 * @throws IOException if a network error occurs
 	 */
 	private void chatMsg(JSONObject request) throws IOException {
 		Section section = currentUser.getEditingSection();

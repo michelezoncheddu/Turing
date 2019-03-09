@@ -4,13 +4,19 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.util.List;
 
+/**
+ * Represents a section inside the server
+ */
 public class Section {
 	private final Document parent;
 	private Path path;
-	private User editingUser = null; // which is currently editing
+	private User editingUser = null; // that is currently editing
 
 	/**
 	 * Creates a new section
+	 *
+	 * @param parent the parent document
+	 * @param path   the file path
 	 */
 	public Section(Document parent, String path) {
 		this.parent = parent;
@@ -19,11 +25,18 @@ public class Section {
 
 	/**
 	 * Returns the parent document
+	 *
+	 * @return the parent document
 	 */
 	public Document getParent() { return parent; }
 
 	/**
-	 * Locks the section
+	 * Locks the section for the editing
+	 *
+	 * @param user the user that wants to edit the section
+	 *
+	 * @return true if the section has been locked for the user
+	 *         false otherwhise (section already reserved)
 	 */
 	public synchronized boolean startEdit(User user) {
 		if (editingUser == null) {
@@ -37,6 +50,11 @@ public class Section {
 
 	/**
 	 * Unlocks the section and saves the new content
+	 *
+	 * @param user    the user that wants to end the section editing
+	 * @param content the new section content
+	 *
+	 * @throws IOException if a disk error occurs
 	 */
 	public synchronized void endEdit(User user, String content) throws IOException {
 		if (editingUser != user)
@@ -45,14 +63,16 @@ public class Section {
 		editingUser = null; // unlock section
 		parent.removeEditingUser();
 
-		if (content == null) // discard changes
-			return;
-
-		Files.writeString(path, content, StandardOpenOption.TRUNCATE_EXISTING);
+		if (content != null) // save changes
+			Files.writeString(path, content, StandardOpenOption.TRUNCATE_EXISTING);
 	}
 
 	/**
 	 * Returns the content of the section
+	 *
+	 * @return the section content
+	 *
+	 * @throws IOException if a disk error occurs
 	 */
 	public String getContent() throws IOException {
 		StringBuilder data = new StringBuilder();

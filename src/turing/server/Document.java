@@ -28,6 +28,13 @@ public class Document {
 
 	/**
 	 * Creates a new document
+	 *
+	 * @param name     the document name
+	 * @param creator  the document creator
+	 * @param sections the number of sections
+	 *
+	 * @throws IOException                  if a disk error occurs
+	 * @throws PreExistentDocumentException if the document already exists
 	 */
 	public Document(String name, User creator, int sections) throws IOException, PreExistentDocumentException {
 		this.name = name;
@@ -57,18 +64,54 @@ public class Document {
 		}
 	}
 
+	/**
+	 * Returns the document name
+	 *
+	 * @return the document name
+	 */
 	public String getName() { return name; }
+
+	/**
+	 * Returns the document creator
+	 *
+	 * @return the document creator
+	 */
 	public User getCreator() { return creator; }
+
+	/**
+	 * Returns the number of sections
+	 *
+	 * @return the number of sections
+	 */
 	public int getNumberOfSections() { return sections.length; }
+
+	/**
+	 * Returns the chat address
+	 *
+	 * @return the chat address
+	 */
 	public InetAddress getChatAddress() { return chatAddress; }
+
+	/**
+	 * Checks if the document is shared
+	 *
+	 * @return true  if the document is shared
+	 *         false otherwise
+	 */
 	public boolean isShared() { return !allowedUsers.isEmpty(); }
 
+	/**
+	 * Adds an editing user and eventually starts the chat
+	 */
 	public synchronized void addEditingUser() {
 		editingUsers++;
 		if (chatAddress == null) // first editing user joined
 			openChat(AddressManager.createAddress());
 	}
 
+	/**
+	 * Removes an editing user and eventually closes the chat
+	 */
 	public synchronized void removeEditingUser() {
 		editingUsers--;
 		if (editingUsers == 0) { // last editing user left
@@ -78,6 +121,11 @@ public class Document {
 
 	/**
 	 * Returns the specified section
+	 *
+	 * @param index the number of the section to get
+	 *
+	 * @return the section, if index is in a valid range
+	 *         null otherwise
 	 */
 	public Section getSection(int index) {
 		if (index >= 0 && index < sections.length)
@@ -87,6 +135,11 @@ public class Document {
 
 	/**
 	 * Checks if the user is allowed to edit the document
+	 *
+	 * @param user the user to to check
+	 *
+	 * @return true if the user is allowed
+	 *         false otherwise
 	 */
 	public boolean isEditableBy(User user) {
 		return user == creator || allowedUsers.contains(user); // TODO: more secure checking only usernames?
@@ -94,6 +147,11 @@ public class Document {
 
 	/**
 	 * Share the document with another user
+	 *
+	 * @param user the user to share with
+	 *
+	 * @return true if is possible to share the document with that user
+	 *         false otherwise
 	 */
 	public boolean shareWith(User user) {
 		if (user == creator || allowedUsers.contains(user)) // already shared
@@ -103,7 +161,24 @@ public class Document {
 	}
 
 	/**
+	 * Sends a message to the chat channel
+	 *
+	 * @param message the message to send
+	 *
+	 * @throws IOException if a network error occurs
+	 */
+	public void sendMessage(String message) throws IOException { // TODO: are channels thread-safe?
+		ByteBuffer buffer = ByteBuffer.allocate(message.length());
+		buffer.put(message.getBytes());
+		buffer.flip();
+		while (buffer.hasRemaining())
+			channel.send(buffer, groupAddress);
+	}
+
+	/**
 	 * Initializes the chat channel
+	 *
+	 * @param chatAddress the address of the chat
 	 */
 	private void openChat(InetAddress chatAddress) {
 		this.chatAddress = chatAddress;
@@ -128,13 +203,5 @@ public class Document {
 		}
 		AddressManager.freeAddress(chatAddress);
 		chatAddress = null;
-	}
-
-	public void sendMessage(String message) throws IOException { // TODO: are channels thread-safe?
-		ByteBuffer buffer = ByteBuffer.allocate(message.length());
-		buffer.put(message.getBytes());
-		buffer.flip();
-		while (buffer.hasRemaining())
-			channel.send(buffer, groupAddress);
 	}
 }

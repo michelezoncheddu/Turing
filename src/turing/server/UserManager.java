@@ -8,13 +8,21 @@ import java.util.AbstractMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Contains a collection of users
+ * Implements a concurrent user manager
  */
 public class UserManager extends RemoteServer implements UserManagerAPI {
 	private AbstractMap<String, User> users = new ConcurrentHashMap<>();
 
 	/**
 	 * Registers a new user
+	 *
+	 * @param username the user username
+	 * @param password the user password
+	 *
+	 * @return true if has been possibile to register the user (username not registered yet)
+	 *         false otherwise
+	 *
+	 * @throws RemoteException if a RMI communication error occurs
 	 */
 	public boolean signUp(String username, String password) throws RemoteException {
 		return users.putIfAbsent(username, new User(username, password)) == null;
@@ -22,6 +30,12 @@ public class UserManager extends RemoteServer implements UserManagerAPI {
 
 	/**
 	 * Logs in an user
+	 *
+	 * @param username the user username
+	 * @param password the user password
+	 *
+	 * @return the user, if has been possible to log in (user registered and not already logged)
+	 *         null otherwise
 	 */
 	public User logIn(String username, String password) {
 		User user = users.get(username);
@@ -32,6 +46,6 @@ public class UserManager extends RemoteServer implements UserManagerAPI {
 			if (user.setOnline(true)) // setOnline is thread safe
 				return user;
 
-		return null; // wrong password or user already logged
+		return null; // wrong password or user already logged TODO: throw specific exception
 	}
 }
