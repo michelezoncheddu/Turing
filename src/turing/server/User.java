@@ -15,7 +15,7 @@ public class User {
 	private boolean online;
 	private Section editingSection;
 
-	final List<Document> myDocuments;
+	private final List<Document> myDocuments;
 	final List<Document> sharedDocuments;
 	final ConcurrentLinkedQueue<JSONObject> pendingNotifications;
 
@@ -72,6 +72,15 @@ public class User {
 	}
 
 	/**
+	 * Returns the collection of user's documents
+	 *
+	 * @return the user's documents list
+	 */
+	public List<Document> getMyDocuments() {
+		return myDocuments;
+	}
+
+	/**
 	 * Sets the online status
 	 *
 	 * @param newStatus the new online status
@@ -84,6 +93,15 @@ public class User {
 			return false;
 		online = newStatus;
 		return true;
+	}
+
+	/**
+	 * Adds a document to the user's private document list
+	 *
+	 * @param document the document to add
+	 */
+	public void addDocument(Document document) {
+		myDocuments.add(document);
 	}
 
 	/**

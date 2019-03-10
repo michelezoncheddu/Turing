@@ -1,7 +1,5 @@
 package turing.client;
 
-import turing.Fields;
-
 import org.json.JSONObject;
 
 import java.io.*;
@@ -52,29 +50,5 @@ public class Connection {
 			return null;
 		}
 		return new JSONObject(replyString);
-	}
-
-	/**
-	 * Downloads the documents table data
-	 *
-	 * @param incomingMessages number of messages to listen for
-	 */
-	public void downloadTablesData(Integer incomingMessages) {
-		String messageString;
-		JSONObject jsonDoc;
-		for (int i = 0; i < incomingMessages; i++) {
-			try {
-				messageString = reader.readLine();
-			} catch (IOException e) {
-				Client.frame.showErrorDialog("Communication error");
-				return;
-			}
-			jsonDoc = new JSONObject(messageString);
-			Client.frame.addDocument(new Document(
-					(String) jsonDoc.get(Fields.DOCUMENT_NAME),
-					(String) jsonDoc.get(Fields.DOCUMENT_CREATOR),
-					(Integer) jsonDoc.get(Fields.NUMBER_OF_SECTIONS),
-					(Boolean) jsonDoc.get(Fields.IS_SHARED)));
-		}
 	}
 }

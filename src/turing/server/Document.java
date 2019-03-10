@@ -10,7 +10,8 @@ import java.net.NetworkInterface;
 import java.net.StandardSocketOptions;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
-import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Represents a document inside the server
@@ -19,7 +20,7 @@ public class Document {
 	private String name;
 	private User creator;
 	private Section[] sections;
-	private ArrayList<User> allowedUsers;
+	private List<User> allowedUsers;
 	private InetAddress chatAddress;
 	private int editingUsers;
 
@@ -40,7 +41,7 @@ public class Document {
 		this.name = name;
 		this.creator = creator;
 		this.sections = new Section[sections]; // TODO: sections may be too little or too big
-		this.allowedUsers = new ArrayList<>();
+		this.allowedUsers = new LinkedList<>();
 		this.chatAddress = null;
 		this.editingUsers = 0;
 
@@ -142,22 +143,17 @@ public class Document {
 	 *         false otherwise
 	 */
 	public boolean isEditableBy(User user) {
-		return user == creator || allowedUsers.contains(user); // TODO: more secure checking only usernames?
+		return user == creator || allowedUsers.contains(user);
 	}
 
 	/**
 	 * Share the document with another user
 	 *
 	 * @param user the user to share with
-	 *
-	 * @return true if is possible to share the document with that user
-	 *         false otherwise
 	 */
-	public boolean shareWith(User user) {
-		if (user == creator || allowedUsers.contains(user)) // already shared
-			return false;
-		allowedUsers.add(user);
-		return true;
+	public synchronized void shareWith(User user) {
+		if (user != creator && !allowedUsers.contains(user)) // if not already shared
+			allowedUsers.add(user);
 	}
 
 	/**
@@ -167,12 +163,13 @@ public class Document {
 	 *
 	 * @throws IOException if a network error occurs
 	 */
-	public void sendMessage(String message) throws IOException { // TODO: are channels thread-safe?
-		ByteBuffer buffer = ByteBuffer.allocate(message.length());
-		buffer.put(message.getBytes());
+	public void sendMessage(String message, String username) throws IOException {
+		String toSend = username + ": " + message;
+		ByteBuffer buffer = ByteBuffer.allocate(toSend.length());
+		buffer.put(toSend.getBytes());
 		buffer.flip();
-		while (buffer.hasRemaining())
-			channel.send(buffer, groupAddress);
+		// while (buffer.hasRemaining())
+		channel.send(buffer, groupAddress); // TODO: try with big messages
 	}
 
 	/**

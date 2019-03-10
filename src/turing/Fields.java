@@ -13,8 +13,7 @@ public final class Fields {
 	public static final String OPERATION_END_EDIT     = "op_end_edit";
 	public static final String OPERATION_LIST         = "op_list";
 	public static final String OPERATION_CHAT_MSG     = "op_chat_msg";
-
-	public static final String INCOMING_MESSAGES = "icg_msgs";
+	public static final String OPERATION_INVITE       = "op_invite";
 
 	public static final String STATUS     = "status";
 	public static final String STATUS_OK  = "status_ok";
@@ -22,6 +21,7 @@ public final class Fields {
 
 	public static final String USERNAME           = "usn";
 	public static final String PASSWORD           = "psw";
+	public static final String DOCUMENTS          = "dcs";
  	public static final String DOCUMENT_NAME      = "doc_name";
 	public static final String DOCUMENT_CREATOR   = "doc_creator";
 	public static final String DOCUMENT_SECTION   = "doc_section";

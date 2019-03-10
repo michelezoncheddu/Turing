@@ -25,7 +25,7 @@ public class UserManager extends RemoteServer implements UserManagerAPI {
 	 * @throws RemoteException if a RMI communication error occurs
 	 */
 	public boolean signUp(String username, String password) throws RemoteException {
-		return users.putIfAbsent(username, new User(username, password)) == null;
+		return users.putIfAbsent(username, new User(username, password)) == null; // TODO: check for '/' character
 	}
 
 	/**
@@ -47,5 +47,17 @@ public class UserManager extends RemoteServer implements UserManagerAPI {
 				return user;
 
 		return null; // wrong password or user already logged TODO: throw specific exception
+	}
+
+	/**
+	 * Returns an user
+	 *
+	 * @param username the user username
+	 *
+	 * @return the user with that username, if exists
+	 *         null otherwise
+	 */
+	public User get(String username) {
+		return users.get(username);
 	}
 }

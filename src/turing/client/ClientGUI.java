@@ -52,7 +52,7 @@ public class ClientGUI extends JFrame {
 			connection = new Connection(Client.DEFAULT_ADDRESS);
 		} catch (IOException e) {
 			e.printStackTrace();
-			JOptionPane.showMessageDialog(Client.frame, "Can't connect to the server");
+			showErrorDialog("Can't connect to the server");
 			System.exit(0);
 		}
 
@@ -143,12 +143,11 @@ public class ClientGUI extends JFrame {
 		JButton editSectionButton = new JButton("Edit section");
 		JButton inviteButton = new JButton("Invite");
 		JButton refreshButton = new JButton("Refresh");
-		createDocumentButton.addActionListener(event -> createDocument());
+		createDocumentButton.addActionListener(event -> createDocumentWindow());
 		//showDocumentButton.addActionListener(event -> showDocument());
 		//showSectionButton.addActionListener(event -> showSection());
 		editSectionButton.addActionListener(event -> Operation.editSection(lastSelectedDocument, lastSelectedSection));
-		//endEditButton.addActionListener(event -> foo());
-		//inviteButton.addActionListener(event -> bar());
+		inviteButton.addActionListener(event -> inviteWindow());
 		refreshButton.addActionListener(event -> Operation.list());
 		buttonsPanel.add(createDocumentButton);
 		buttonsPanel.add(showDocumentButton);
@@ -197,7 +196,7 @@ public class ClientGUI extends JFrame {
 	/**
 	 * Creates the document editing window
 	 */
-	public void createEditingSpace(String documentText) {
+	public void createEditingWindow(String documentText) {
 		setVisible(false);
 		getContentPane().removeAll();
 		setLayout(new BorderLayout());
@@ -246,7 +245,7 @@ public class ClientGUI extends JFrame {
 	/**
 	 * Creates the document creation window
 	 */
-	private void createDocument() {
+	private void createDocumentWindow() {
 		JPanel window = new JPanel();
 		JLabel documentNameLabel = new JLabel("Document name");
 		JLabel sectionsLabel = new JLabel("Number of sections");
@@ -276,12 +275,43 @@ public class ClientGUI extends JFrame {
 		String documentName = documentNameField.getText();
 		Integer sections = (Integer) sectionsField.getValue();
 		if (documentName.isBlank() || sections == null) {
-			JOptionPane.showMessageDialog(Client.frame, "You must compile all fields");
+			showErrorDialog("You must compile all fields");
 			return;
 		}
 
-		// creating document
-		Operation.createDocument(documentName, sections);
+		Operation.createDocument(documentName, sections); // creating document
+	}
+
+	/**
+	 * Creates the invite window
+	 */
+	private void inviteWindow() {
+		if (lastSelectedDocument == null) {
+			showErrorDialog("You must select a document to share");
+			return;
+		}
+
+		JPanel window = new JPanel();
+		JLabel usernameLabel = new JLabel("Username");
+		JTextField usernameField = new JTextField(10);
+
+		// creating dialog window
+		window.add(usernameLabel);
+		window.add(usernameField);
+		int code = JOptionPane.showConfirmDialog(Client.frame, window, "Invite user",
+				JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE);
+
+		if (code != JOptionPane.OK_OPTION) // operation aborted
+			return;
+
+		// checking fields
+		String username = usernameField.getText();
+		if (username.isBlank()) {
+			showErrorDialog("You must write an username");
+			return;
+		}
+
+		Operation.invite(username, lastSelectedDocument); // inviting user
 	}
 
 	/**

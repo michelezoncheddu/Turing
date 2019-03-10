@@ -1,5 +1,6 @@
 package turing.server;
 
+import org.json.JSONArray;
 import turing.Fields;
 
 import org.json.JSONObject;
@@ -10,6 +11,7 @@ import turing.server.exceptions.UserNotAllowedException;
 import java.io.*;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 import static java.lang.System.out;
 
@@ -51,7 +53,7 @@ public class ClientHandler implements Runnable {
 			String reqString;
 			try {
 				reqString = reader.readLine();
-			} catch (IOException e) {
+			} catch (IOException e) { // communication error with the client
 				logout();
 				e.printStackTrace();
 				break;
@@ -67,7 +69,7 @@ public class ClientHandler implements Runnable {
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-				out.println(Thread.currentThread() + ": client disconnected");
+				out.println("Client disconnected");
 				break;
 			}
 
@@ -75,8 +77,9 @@ public class ClientHandler implements Runnable {
 			JSONObject req = new JSONObject(reqString);
 			try {
 				handleOperation(req);
-			} catch (IOException e) {
-				e.printStackTrace(); // communication error with the client
+			} catch (IOException e) { // communication error with the client
+				logout();
+				e.printStackTrace();
 			}
 		}
 
@@ -139,11 +142,7 @@ public class ClientHandler implements Runnable {
 			break;
 
 		case Fields.OPERATION_CREATE_DOC:
-			createDoc(request);
-			break;
-
-		case Fields.OPERATION_LIST:
-			list();
+			createDocument(request);
 			break;
 
 		case Fields.OPERATION_EDIT_SECTION:
@@ -154,8 +153,16 @@ public class ClientHandler implements Runnable {
 			endEdit(request);
 			break;
 
+		case Fields.OPERATION_INVITE:
+			invite(request);
+			break;
+
+		case Fields.OPERATION_LIST:
+			list();
+			break;
+
 		case Fields.OPERATION_CHAT_MSG:
-			chatMsg(request);
+			sendMessage(request);
 			break;
 
 		default:
@@ -178,10 +185,10 @@ public class ClientHandler implements Runnable {
 		// try to log user
 		if ((currentUser = Server.userManager.logIn(username, password)) != null) {
 			sendAck();
-			out.println(Thread.currentThread() + " " + currentUser.getUsername() + " connected");
+			out.println(currentUser.getUsername() + " connected");
 		} else {
 			sendError("Can't connect " + username); // TODO: specify error
-			out.println(Thread.currentThread() + " can't connect " + username);
+			out.println("Can't connect " + username);
 		}
 	}
 
@@ -214,7 +221,7 @@ public class ClientHandler implements Runnable {
 	 *
 	 * @throws IOException if a network error occurs
 	 */
-	private void createDoc(JSONObject request) throws IOException {
+	private void createDocument(JSONObject request) throws IOException {
 		// parsing request
 		String docName = (String) request.get(Fields.DOCUMENT_NAME);
 		int sections = (Integer) request.get(Fields.NUMBER_OF_SECTIONS);
@@ -227,45 +234,9 @@ public class ClientHandler implements Runnable {
 			sendError("Document already created");
 			return;
 		}
-		currentUser.myDocuments.add(newDoc);
-		DocumentManager.add(newDoc);
+		currentUser.addDocument(newDoc);
+		DocumentManager.put(newDoc);
 		sendAck();
-	}
-
-	/**
-	 * Implements the list operation
-	 *
-	 * @throws IOException if a network error occurs
-	 */
-	private void list() throws IOException {
-		JSONObject message = new JSONObject();
-		JSONObject document;
-
-		synchronized (currentUser.sharedDocuments) {
-			message.put(Fields.STATUS, Fields.STATUS_OK);
-			message.put(Fields.INCOMING_MESSAGES, currentUser.myDocuments.size() + currentUser.sharedDocuments.size());
-			writer.write(message.toString());
-			writer.newLine();
-			for (Document myDoc : currentUser.myDocuments) {
-				document = new JSONObject();
-				document.put(Fields.DOCUMENT_NAME, myDoc.getName())
-						.put(Fields.DOCUMENT_CREATOR, myDoc.getCreator().getUsername())
-						.put(Fields.NUMBER_OF_SECTIONS, myDoc.getNumberOfSections())
-						.put(Fields.IS_SHARED, myDoc.isShared());
-				writer.write(document.toString());
-				writer.newLine();
-			}
-			for (Document sharedDoc : currentUser.sharedDocuments) {
-				document = new JSONObject();
-				document.put(Fields.DOCUMENT_NAME, sharedDoc.getName())
-						.put(Fields.DOCUMENT_CREATOR, sharedDoc.getCreator().getUsername())
-						.put(Fields.NUMBER_OF_SECTIONS, sharedDoc.getNumberOfSections())
-						.put(Fields.IS_SHARED, true);
-				writer.write(document.toString());
-				writer.newLine();
-			}
-		}
-		writer.flush();
 	}
 
 	/**
@@ -288,7 +259,7 @@ public class ClientHandler implements Runnable {
 
 		Document document;
 		try {
-			document = DocumentManager.get(currentUser, creator, docName);
+			document = DocumentManager.getAsGuest(currentUser, DocumentManager.makeKey(creator, docName));
 		} catch (UserNotAllowedException e) {
 			sendError("Permission denied for: " + docName);
 			System.err.println(currentUser + " not allowed to modify " + docName);
@@ -348,13 +319,92 @@ public class ClientHandler implements Runnable {
 	}
 
 	/**
+	 * Implements the invite operation
+	 *
+	 * @param request the client request
+	 */
+	private void invite(JSONObject request) throws IOException {
+		// parsing request
+		String username = (String) request.get(Fields.USERNAME);
+		String creator = (String) request.get(Fields.DOCUMENT_CREATOR);
+		String docName = (String) request.get(Fields.DOCUMENT_NAME);
+
+		// get the user to invite
+		User user = Server.userManager.get(username);
+		if (user == null) {
+			sendError(username + " inexistent");
+			return;
+		} else if (user == currentUser) {
+			sendError("You cannot invite yourself");
+			return;
+		}
+
+		// get the document to share
+		Document document;
+		try {
+			document = DocumentManager.getAsCreator(currentUser, DocumentManager.makeKey(creator, docName));
+		} catch (UserNotAllowedException e) {
+			sendError("You cannot share other users' documents");
+			System.err.println(currentUser + " not allowed to share " + docName);
+			return;
+		} catch (InexistentDocumentException e) {
+			sendError("Inexistent document: " + docName);
+			System.err.println(docName + " inexistent");
+			return;
+		}
+
+		document.shareWith(user);
+		synchronized (user.sharedDocuments) {
+			if (!user.sharedDocuments.contains(document))
+				user.sharedDocuments.add(document);
+		}
+		sendAck();
+	}
+
+	/**
+	 * Implements the list operation
+	 *
+	 * @throws IOException if a network error occurs
+	 */
+	private void list() throws IOException {
+		JSONObject message = new JSONObject();
+		JSONObject document;
+		List<Document> myDocuments = currentUser.getMyDocuments();
+
+		message.put(Fields.STATUS, Fields.STATUS_OK);
+		JSONArray docArray = new JSONArray();
+		for (Document myDoc : myDocuments) {
+			document = new JSONObject();
+			document.put(Fields.DOCUMENT_NAME, myDoc.getName())
+					.put(Fields.DOCUMENT_CREATOR, myDoc.getCreator().getUsername())
+					.put(Fields.NUMBER_OF_SECTIONS, myDoc.getNumberOfSections())
+					.put(Fields.IS_SHARED, myDoc.isShared());
+			docArray.put(document);
+		}
+		synchronized (currentUser.sharedDocuments) {
+			for (Document sharedDoc : currentUser.sharedDocuments) {
+				document = new JSONObject();
+				document.put(Fields.DOCUMENT_NAME, sharedDoc.getName())
+						.put(Fields.DOCUMENT_CREATOR, sharedDoc.getCreator().getUsername())
+						.put(Fields.NUMBER_OF_SECTIONS, sharedDoc.getNumberOfSections())
+						.put(Fields.IS_SHARED, true);
+				docArray.put(document);
+			}
+		}
+		message.put(Fields.DOCUMENTS, docArray);
+		writer.write(message.toString());
+		writer.newLine();
+		writer.flush();
+	}
+
+	/**
 	 * Implements the send of a chat message
 	 *
 	 * @param request the client request
 	 *
 	 * @throws IOException if a network error occurs
 	 */
-	private void chatMsg(JSONObject request) throws IOException {
+	private void sendMessage(JSONObject request) throws IOException {
 		Section section = currentUser.getEditingSection();
 
 		// user isn't editing any section
@@ -363,7 +413,7 @@ public class ClientHandler implements Runnable {
 			return;
 		}
 
-		section.getParent().sendMessage((String) request.get(Fields.CHAT_MSG));
+		section.getParent().sendMessage((String) request.get(Fields.CHAT_MSG), currentUser.getUsername());
 		sendAck();
 	}
 }
