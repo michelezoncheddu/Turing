@@ -1,20 +1,13 @@
 package turing.client;
 
 import turing.Fields;
-import turing.UserManagerAPI;
 
 import org.json.JSONObject;
 
-import javax.swing.*;
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
-import java.rmi.NotBoundException;
-import java.rmi.Remote;
-import java.rmi.RemoteException;
-import java.rmi.registry.LocateRegistry;
-import java.rmi.registry.Registry;
 
 /**
  * Implements the connection and the communication with the server
@@ -28,47 +21,15 @@ public class Connection {
 	/**
 	 * Initializes the connection with the server
 	 *
-	 * @param address
-	 * @throws IOException
+	 * @param address the server address
+	 *
+	 * @throws IOException if a network error occurs
 	 */
 	public Connection(InetSocketAddress address) throws IOException {
 		Socket defaultConnection = new Socket();
 		defaultConnection.connect(address);
 		writer = new BufferedWriter(new OutputStreamWriter(defaultConnection.getOutputStream(), StandardCharsets.UTF_8));
 		reader = new BufferedReader(new InputStreamReader(defaultConnection.getInputStream(), StandardCharsets.UTF_8));
-	}
-
-	/**
-	 * Performs the sign up operation
-	 *
-	 * @param username username to register
-	 * @param password user's password
-	 */
-	public void signUp(String username, String password) { // TODO: move to Operation class
-		if (username.isBlank() || password.isBlank())
-			return;
-
-		// Remote Method Invocation
-		UserManagerAPI serverObject;
-		Remote remoteObject;
-		try {
-			// obtaining the remote object
-			Registry registry = LocateRegistry.getRegistry(Client.HOST);
-			remoteObject = registry.lookup(Client.REGISTRATION_OBJECT);
-			serverObject = (UserManagerAPI) remoteObject;
-
-			// trying to register user
-			boolean success = serverObject.signUp(username, password);
-			if (success)
-				JOptionPane.showMessageDialog(Client.frame, username + " registered");
-			else
-				JOptionPane.showMessageDialog(Client.frame, "Can't register " + username,
-						"Error", JOptionPane.ERROR_MESSAGE); // TODO: specify error and exceptions
-		} catch (RemoteException e) {
-			Client.frame.showErrorDialog("Communication error");
-		} catch (NotBoundException e) {
-			Client.frame.showErrorDialog("Unable to find registration service");
-		}
 	}
 
 	/**

@@ -91,7 +91,7 @@ public class ClientGUI extends JFrame {
 		// buttonsPanel
 		JButton signupButton = new JButton("Sign up");
 		JButton loginButton = new JButton("Log in");
-		signupButton.addActionListener(event -> connection.signUp(usernameField.getText().trim(), passwordField.getText()));
+		signupButton.addActionListener(event -> Operation.signUp(usernameField.getText().trim(), passwordField.getText()));
 		loginButton.addActionListener(event -> Operation.logIn(usernameField.getText().trim(), passwordField.getText()));
 		buttonsPanel.add(signupButton);
 		buttonsPanel.add(loginButton);

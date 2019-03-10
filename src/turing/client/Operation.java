@@ -2,8 +2,14 @@ package turing.client;
 
 import org.json.JSONObject;
 import turing.Fields;
+import turing.UserManagerAPI;
 
 import javax.swing.*;
+import java.rmi.NotBoundException;
+import java.rmi.Remote;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 
 /**
  * Class that performs the client operations
@@ -21,10 +27,43 @@ public class Operation {
 	}
 
 	/**
-	 * Checks the reply
+	 * Checks if the reply is an error message
 	 */
 	private static boolean isErrorMessage(JSONObject reply) {
 		return reply.get(Fields.STATUS).equals(Fields.STATUS_ERR);
+	}
+
+	/**
+	 * Performs the sign up operation
+	 *
+	 * @param username username to register
+	 * @param password user's password
+	 */
+	public static void signUp(String username, String password) {
+		if (username.isBlank() || password.isBlank())
+			return;
+
+		// Remote Method Invocation
+		UserManagerAPI serverObject;
+		Remote remoteObject;
+		try {
+			// obtaining the remote object
+			Registry registry = LocateRegistry.getRegistry(Client.HOST);
+			remoteObject = registry.lookup(Client.REGISTRATION_OBJECT);
+			serverObject = (UserManagerAPI) remoteObject;
+
+			// trying to register user
+			boolean success = serverObject.signUp(username, password);
+			if (success)
+				JOptionPane.showMessageDialog(Client.frame, username + " registered");
+			else
+				JOptionPane.showMessageDialog(Client.frame, "Can't register " + username,
+						"Error", JOptionPane.ERROR_MESSAGE); // TODO: specify error and exceptions
+		} catch (RemoteException e) {
+			Client.frame.showErrorDialog("Communication error");
+		} catch (NotBoundException e) {
+			Client.frame.showErrorDialog("Unable to find registration service");
+		}
 	}
 
 	/**
@@ -48,7 +87,7 @@ public class Operation {
 		JSONObject reply = connection.requestReply(request);
 		if (isErrorMessage(reply)) {
 			Client.frame.showErrorDialog((String) reply.get(Fields.ERR_MSG));
-			System.exit(0);
+			return;
 		}
 
 		Client.frame.createWorkspace(); // create the workspace window

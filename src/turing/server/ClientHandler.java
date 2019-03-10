@@ -42,7 +42,7 @@ public class ClientHandler implements Runnable {
 			reader = new BufferedReader(new InputStreamReader(clientConnection.getInputStream(), StandardCharsets.UTF_8));
 			writer = new BufferedWriter(new OutputStreamWriter(clientConnection.getOutputStream(), StandardCharsets.UTF_8));
 		} catch (IOException e) {
-			e.printStackTrace();
+			e.printStackTrace(); // communication error with the client
 			return;
 		}
 
@@ -52,27 +52,14 @@ public class ClientHandler implements Runnable {
 			try {
 				reqString = reader.readLine();
 			} catch (IOException e) {
-				e.printStackTrace(); // TODO: close streams, defaultConnection and disconnect user?
+				logout();
+				e.printStackTrace();
 				break;
 			}
 
 			// client disconnected
 			if (reqString == null) {
-				if (currentUser != null) {
-					currentUser.setOnline(false);
-
-					// release possible locks
-					Section currentSection = currentUser.getEditingSection();
-					if (currentSection != null) {
-						try {
-							currentSection.endEdit(currentUser, null);
-						} catch (IOException e) {
-							e.printStackTrace();
-						}
-					}
-					currentUser.setEditingSection(null);
-					currentUser = null;
-				}
+				logout();
 				try {
 					reader.close();
 					writer.close();
@@ -89,7 +76,7 @@ public class ClientHandler implements Runnable {
 			try {
 				handleOperation(req);
 			} catch (IOException e) {
-				e.printStackTrace(); // can't communicate to the client
+				e.printStackTrace(); // communication error with the client
 			}
 		}
 
@@ -147,6 +134,10 @@ public class ClientHandler implements Runnable {
 			login(request);
 			break;
 
+		case Fields.OPERATION_LOGOUT:
+			logout();
+			break;
+
 		case Fields.OPERATION_CREATE_DOC:
 			createDoc(request);
 			break;
@@ -189,9 +180,31 @@ public class ClientHandler implements Runnable {
 			sendAck();
 			out.println(Thread.currentThread() + " " + currentUser.getUsername() + " connected");
 		} else {
-			sendError("Can't connect"); // TODO: specify error
+			sendError("Can't connect " + username); // TODO: specify error
 			out.println(Thread.currentThread() + " can't connect " + username);
 		}
+	}
+
+	/**
+	 * Implements the logout operation
+	 */
+	private void logout() {
+		if (currentUser == null)
+			return;
+
+		currentUser.setOnline(false);
+
+		// release possible locks
+		Section currentSection = currentUser.getEditingSection();
+		if (currentSection != null) {
+			try {
+				currentSection.endEdit(currentUser, null);
+			} catch (IOException e) {
+				e.printStackTrace(); // disk error
+			}
+		}
+		currentUser.setEditingSection(null);
+		currentUser = null;
 	}
 
 	/**
@@ -277,18 +290,18 @@ public class ClientHandler implements Runnable {
 		try {
 			document = DocumentManager.get(currentUser, creator, docName);
 		} catch (UserNotAllowedException e) {
-			sendError("Permission denied");
+			sendError("Permission denied for: " + docName);
 			System.err.println(currentUser + " not allowed to modify " + docName);
 			return;
 		} catch (InexistentDocumentException e) {
-			sendError("Inexistent document");
+			sendError("Inexistent document: " + docName);
 			System.err.println(docName + " inexistent");
 			return;
 		}
 
 		Section section = document.getSection(sectionNumber);
 		if (section == null) {
-			sendError("Inexisten section");
+			sendError("Inexistent section: " + sectionNumber);
 			return;
 		}
 
