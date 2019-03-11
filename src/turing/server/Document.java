@@ -102,6 +102,18 @@ public class Document {
 	public boolean isShared() { return !allowedUsers.isEmpty(); }
 
 	/**
+	 * Checks if the document is shared with a specific user
+	 *
+	 * @param user the user to search
+	 *
+	 * @return true if the document is shared with the user
+	 *         false otherwise
+	 */
+	public boolean isSharedWith(User user) {
+		return allowedUsers.contains(user);
+	}
+
+	/**
 	 * Adds an editing user and eventually starts the chat
 	 */
 	public synchronized void addEditingUser() {

@@ -5,9 +5,17 @@ import java.rmi.RemoteException;
 
 public interface ServerNotificationManagerAPI extends Remote {
 
-	/* registrazione per il callback */
-	public void registerForCallback(ClientNotificationManagerAPI callbackClient) throws RemoteException;
-
-	/* cancella registrazione per il callback */
-	public void unregisterForCallback(ClientNotificationManagerAPI callbackClient) throws RemoteException;
+	/**
+	 * Registers an user for receiving server notifications
+	 *
+	 * @param username the user username
+	 * @param password the user password
+	 * @param notifier the client notifier
+	 *
+	 * @throws NullPointerException if at least a parameter is null
+	 * @throws RemoteException      if a RMI communication error occurs
+	 */
+	void registerForNotifications(
+			String username, String password, ClientNotificationManagerAPI notifier)
+			throws NullPointerException, RemoteException;
 }

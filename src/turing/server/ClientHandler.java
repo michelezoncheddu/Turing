@@ -73,7 +73,7 @@ public class ClientHandler implements Runnable {
 				break;
 			}
 
-			// TODO: validate messages format, check if user is NOT NULL and online and currentUser is the same inside req
+			// TODO: validate messages format, check if currentUser is NOT NULL and currentUser is the same inside req
 			JSONObject req = new JSONObject(reqString);
 			try {
 				handleOperation(req);
@@ -211,6 +211,7 @@ public class ClientHandler implements Runnable {
 			}
 		}
 		currentUser.setEditingSection(null);
+		currentUser.setNotifier(null);
 		currentUser = null;
 	}
 
@@ -253,8 +254,8 @@ public class ClientHandler implements Runnable {
 		}
 
 		// parsing request
-		String creator = (String) request.get(Fields.DOCUMENT_CREATOR);
-		String docName = (String) request.get(Fields.DOCUMENT_NAME);
+		String creator    = (String)  request.get(Fields.DOCUMENT_CREATOR);
+		String docName    = (String)  request.get(Fields.DOCUMENT_NAME);
 		int sectionNumber = (Integer) request.get(Fields.DOCUMENT_SECTION);
 
 		Document document;
@@ -326,18 +327,8 @@ public class ClientHandler implements Runnable {
 	private void invite(JSONObject request) throws IOException {
 		// parsing request
 		String username = (String) request.get(Fields.USERNAME);
-		String creator = (String) request.get(Fields.DOCUMENT_CREATOR);
-		String docName = (String) request.get(Fields.DOCUMENT_NAME);
-
-		// get the user to invite
-		User user = Server.userManager.get(username);
-		if (user == null) {
-			sendError(username + " inexistent");
-			return;
-		} else if (user == currentUser) {
-			sendError("You cannot invite yourself");
-			return;
-		}
+		String creator  = (String) request.get(Fields.DOCUMENT_CREATOR);
+		String docName  = (String) request.get(Fields.DOCUMENT_NAME);
 
 		// get the document to share
 		Document document;
@@ -353,11 +344,34 @@ public class ClientHandler implements Runnable {
 			return;
 		}
 
+		// get the user to invite
+		User user = Server.userManager.get(username);
+		if (user == null) {
+			sendError(username + " inexistent");
+			return;
+		} else if (user == currentUser) {
+			sendError("You cannot invite yourself");
+			return;
+		}
+
+		if (document.isSharedWith(user)) {
+			sendError(docName + " already shared with " + user.getUsername());
+			System.err.println(docName + " already shared with " + user.getUsername());
+			return;
+		}
+
 		document.shareWith(user);
 		synchronized (user.sharedDocuments) {
 			if (!user.sharedDocuments.contains(document))
 				user.sharedDocuments.add(document);
 		}
+
+		JSONObject notification = new JSONObject();
+		notification.put(Fields.DOCUMENT_NAME, document.getName())
+				.put(Fields.DOCUMENT_CREATOR, document.getCreator().getUsername())
+				.put(Fields.NUMBER_OF_SECTIONS, document.getNumberOfSections())
+				.put(Fields.IS_SHARED, document.isShared());
+		user.sendNotification(notification.toString());
 		sendAck();
 	}
 

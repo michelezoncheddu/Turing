@@ -1,11 +1,16 @@
 package turing.client;
 
 import org.json.JSONObject;
+import turing.ClientNotificationManagerAPI;
+import turing.ServerNotificationManagerAPI;
 
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
 
 /**
  * Implements the connection and the communication with the server
@@ -50,5 +55,20 @@ public class Connection {
 			return null;
 		}
 		return new JSONObject(replyString);
+	}
+
+	/**
+	 * Registers the client for server notifications
+	 */
+	public void registerForNotifications(String username, String password) {
+		try {
+			Registry registry = LocateRegistry.getRegistry(Client.HOST);
+			ServerNotificationManagerAPI serverAPI = (ServerNotificationManagerAPI) registry.lookup(Client.NOTIFICATION_OBJECT);
+			ClientNotificationManager listener = new ClientNotificationManager();
+			ClientNotificationManagerAPI stub = (ClientNotificationManagerAPI) UnicastRemoteObject.exportObject(listener, 0);
+			serverAPI.registerForNotifications(username, password, stub);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 }

@@ -2,6 +2,7 @@ package turing.server;
 
 import turing.UserManagerAPI;
 
+import java.io.File;
 import java.rmi.*;
 import java.rmi.server.*;
 import java.util.AbstractMap;
@@ -22,10 +23,16 @@ public class UserManager extends RemoteServer implements UserManagerAPI {
 	 * @return true if has been possibile to register the user (username not registered yet)
 	 *         false otherwise
 	 *
-	 * @throws RemoteException if a RMI communication error occurs
+	 * @throws NullPointerException if username is null or password is null
+	 * @throws RemoteException      if a RMI communication error occurs
 	 */
-	public boolean signUp(String username, String password) throws RemoteException {
-		return users.putIfAbsent(username, new User(username, password)) == null; // TODO: check for '/' character
+	public boolean signUp(String username, String password) throws NullPointerException, RemoteException {
+		if (username == null || password == null)
+			throw new NullPointerException();
+
+		if (username.contains(File.separator))
+			return false;
+		return users.putIfAbsent(username, new User(username, password)) == null;
 	}
 
 	/**

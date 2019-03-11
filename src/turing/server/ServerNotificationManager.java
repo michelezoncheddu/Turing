@@ -4,28 +4,30 @@ import turing.ClientNotificationManagerAPI;
 import turing.ServerNotificationManagerAPI;
 
 import java.rmi.RemoteException;
-import java.util.ArrayList;
-import java.util.List;
 
 public class ServerNotificationManager implements ServerNotificationManagerAPI {
-	private List<ClientNotificationManagerAPI> clients = new ArrayList<>();
 
-	public synchronized void registerForCallback(ClientNotificationManagerAPI callbackClient) throws RemoteException {
-		if (!clients.contains(callbackClient)) {
-			clients.add(callbackClient);
-			System.out.println("New client registered");
+	/**
+	 * Registers an user for receiving server notifications
+	 *
+	 * @param username the user username
+	 * @param password the user password
+	 * @param notifier the client notifier
+	 *
+	 * @throws NullPointerException if at least a parameter is null
+	 * @throws RemoteException      if a RMI communication error occurs
+	 */
+	public synchronized void registerForNotifications(
+			String username, String password, ClientNotificationManagerAPI notifier)
+			throws NullPointerException, RemoteException {
+		if (username == null || password == null || notifier == null)
+			throw new NullPointerException();
+
+		User user = Server.userManager.get(username);
+
+		if (user != null && user.isOnline() && user.getPassword().equals(password)) {
+			user.setNotifier(notifier);
+			user.flushPendingNotifications();
 		}
-	}
-
-	public synchronized void unregisterForCallback(ClientNotificationManagerAPI callbackClient) throws RemoteException {
-		if (clients.remove(callbackClient))
-			System.out.println("Client unregistered");
-		else
-			System.out.println("Unable to unregister client");
-	}
-
-	public synchronized void notifyAll(String message) throws RemoteException {
-		for (ClientNotificationManagerAPI client : clients)
-			client.notify(message);
 	}
 }

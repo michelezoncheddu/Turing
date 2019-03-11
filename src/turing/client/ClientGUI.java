@@ -1,15 +1,9 @@
 package turing.client;
 
-import turing.ClientNotificationManagerAPI;
-import turing.ServerNotificationManagerAPI;
-
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
-import java.rmi.registry.LocateRegistry;
-import java.rmi.registry.Registry;
-import java.rmi.server.UnicastRemoteObject;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import javax.swing.*;
@@ -34,18 +28,6 @@ public class ClientGUI extends JFrame {
 	 */
 	public ClientGUI() {
 		super("Turing");
-
-		// TEST ********************************************************************************************************
-		try {
-			Registry registry = LocateRegistry.getRegistry(Client.HOST);
-			ServerNotificationManagerAPI aaa = (ServerNotificationManagerAPI) registry.lookup(Client.NOTIFICATION_OBJECT);
-			ClientNotificationManager listener = new ClientNotificationManager();
-			ClientNotificationManagerAPI stub = (ClientNotificationManagerAPI) UnicastRemoteObject.exportObject(listener, 0);
-			aaa.registerForCallback(stub);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		// TEST ********************************************************************************************************
 
 		// try to connect with the server
 		try {
@@ -318,6 +300,9 @@ public class ClientGUI extends JFrame {
 	 * Adds a document in the documents table and in the documents list
 	 */
 	public void addDocument(Document document) {
+		if (documentsTableModel == null)
+			return;
+
 		Object[] tableData = {document.getName(), document.getCreator(), "n.d.", document.isShared()}; // TODO: unused fields
 		documentsTableModel.addRow(tableData);
 		documents.add(document);

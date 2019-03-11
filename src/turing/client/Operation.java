@@ -91,6 +91,7 @@ public class Operation {
 			return;
 		}
 
+		connection.registerForNotifications(username, password);
 		Client.frame.createWorkspace(); // create the workspace window
 		Operation.list();
 	}
