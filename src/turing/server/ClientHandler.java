@@ -20,8 +20,8 @@ import static java.lang.System.out;
  */
 public class ClientHandler implements Runnable {
 	private Socket clientConnection; // connection with the client
-	private User currentUser = null; // currently logged user
 	private BufferedWriter writer;   // output stream with the client
+	private User currentUser = null; // currently logged user
 
 	/**
 	 * Creates a new client handler with a connection with a client

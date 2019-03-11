@@ -35,7 +35,6 @@ public class ClientGUI extends JFrame {
 		try {
 			connection = new Connection(Client.DEFAULT_ADDRESS);
 		} catch (IOException e) {
-			e.printStackTrace();
 			showErrorDialog("Can't connect to the server");
 			System.exit(0);
 		}

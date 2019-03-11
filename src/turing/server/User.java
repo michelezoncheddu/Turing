@@ -5,7 +5,7 @@ import turing.ClientNotificationManagerAPI;
 import java.rmi.RemoteException;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.Queue;
 
 /**
  * Represents user data
@@ -13,15 +13,15 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class User {
 	private final String username;
 	private String password;
-	private boolean onlineStatus;
+	private boolean onlineStatus = false;
 
-	private final List<Document> myDocuments;
-	private Section editingSection;
+	private final List<Document> myDocuments = new LinkedList<>();
+	private Section editingSection = null;
 
-	private ClientNotificationManagerAPI notifier;
-	private final ConcurrentLinkedQueue<String> pendingNotifications;
+	private ClientNotificationManagerAPI notifier = null;
+	private final Queue<String> pendingNotifications = new LinkedList<>();
 
-	final List<Document> sharedDocuments;
+	final List<Document> sharedDocuments = new LinkedList<>();
 
 	/**
 	 * Creates a new user
@@ -32,15 +32,6 @@ public class User {
 	public User(String username, String password) {
 		this.username = username;
 		this.password = password;
-		this.onlineStatus = false;
-
-		this.myDocuments = new LinkedList<>();
-		this.editingSection = null;
-
-		this.notifier = null;
-		this.pendingNotifications = new ConcurrentLinkedQueue<>();
-
-		this.sharedDocuments = new LinkedList<>();
 	}
 
 	/**
@@ -123,7 +114,8 @@ public class User {
 
 	public void setNotifier(ClientNotificationManagerAPI notifier) {
 		synchronized (this) { // to change notifier safely
-			this.notifier = notifier;
+			if (this.notifier == null)
+				this.notifier = notifier;
 		}
 	}
 

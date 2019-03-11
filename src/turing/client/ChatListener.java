@@ -11,7 +11,7 @@ import java.nio.channels.DatagramChannel;
 public class ChatListener implements Runnable {
 	private InetAddress chatAddress;
 	private JTextArea chatArea;
-	private boolean run;
+	private boolean run = true;
 
 	/**
 	 * Creates a new chat listener
@@ -22,7 +22,6 @@ public class ChatListener implements Runnable {
 	public ChatListener(InetAddress chatAddress, JTextArea chatArea) {
 		this.chatAddress = chatAddress;
 		this.chatArea = chatArea;
-		this.run = true;
 	}
 
 	@Override

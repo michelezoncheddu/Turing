@@ -67,7 +67,7 @@ public class Connection {
 			ClientNotificationManager listener = new ClientNotificationManager();
 			ClientNotificationManagerAPI stub = (ClientNotificationManagerAPI) UnicastRemoteObject.exportObject(listener, 0);
 			serverAPI.registerForNotifications(username, password, stub);
-		} catch (Exception e) {
+		} catch (Exception e) { // TODO
 			e.printStackTrace();
 		}
 	}

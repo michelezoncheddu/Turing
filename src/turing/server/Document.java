@@ -20,9 +20,9 @@ public class Document {
 	private String name;
 	private User creator;
 	private Section[] sections;
-	private List<User> allowedUsers;
-	private InetAddress chatAddress;
-	private int editingUsers;
+	private List<User> allowedUsers = new LinkedList<>();
+	private InetAddress chatAddress = null;
+	private int editingUsers = 0;
 
 	private InetSocketAddress groupAddress;
 	private DatagramChannel channel;
@@ -41,9 +41,6 @@ public class Document {
 		this.name = name;
 		this.creator = creator;
 		this.sections = new Section[sections]; // TODO: sections may be too little or too big
-		this.allowedUsers = new LinkedList<>();
-		this.chatAddress = null;
-		this.editingUsers = 0;
 
 		// creating directory
 		String creatorUsername = creator.getUsername();
