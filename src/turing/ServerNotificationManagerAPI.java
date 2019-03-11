@@ -15,7 +15,6 @@ public interface ServerNotificationManagerAPI extends Remote {
 	 * @throws NullPointerException if at least a parameter is null
 	 * @throws RemoteException      if a RMI communication error occurs
 	 */
-	void registerForNotifications(
-			String username, String password, ClientNotificationManagerAPI notifier)
+	void registerForNotifications(String username, String password, ClientNotificationManagerAPI notifier)
 			throws NullPointerException, RemoteException;
 }

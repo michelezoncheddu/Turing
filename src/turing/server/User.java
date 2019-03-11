@@ -112,6 +112,11 @@ public class User {
 		editingSection = section;
 	}
 
+	/**
+	 * Sets the client notifier, if the current one is null
+	 *
+	 * @param notifier the client notifier
+	 */
 	public void setNotifier(ClientNotificationManagerAPI notifier) {
 		synchronized (this) { // to change notifier safely
 			if (this.notifier == null)

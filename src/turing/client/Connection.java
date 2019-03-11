@@ -8,6 +8,8 @@ import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
@@ -67,8 +69,8 @@ public class Connection {
 			ClientNotificationManager listener = new ClientNotificationManager();
 			ClientNotificationManagerAPI stub = (ClientNotificationManagerAPI) UnicastRemoteObject.exportObject(listener, 0);
 			serverAPI.registerForNotifications(username, password, stub);
-		} catch (Exception e) { // TODO
-			e.printStackTrace();
+		} catch (RemoteException | NotBoundException e) {
+			Client.frame.showErrorDialog(e.getMessage());
 		}
 	}
 }

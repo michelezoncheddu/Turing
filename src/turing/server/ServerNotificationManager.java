@@ -17,8 +17,7 @@ public class ServerNotificationManager implements ServerNotificationManagerAPI {
 	 * @throws NullPointerException if at least a parameter is null
 	 * @throws RemoteException      if a RMI communication error occurs
 	 */
-	public void registerForNotifications(
-			String username, String password, ClientNotificationManagerAPI notifier)
+	public void registerForNotifications(String username, String password, ClientNotificationManagerAPI notifier)
 			throws NullPointerException, RemoteException {
 		if (username == null || password == null || notifier == null)
 			throw new NullPointerException();

@@ -5,14 +5,14 @@ import turing.UserManagerAPI;
 import java.io.File;
 import java.rmi.*;
 import java.rmi.server.*;
-import java.util.AbstractMap;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Implements a concurrent user manager
  */
 public class UserManager extends RemoteServer implements UserManagerAPI {
-	private AbstractMap<String, User> users = new ConcurrentHashMap<>();
+	private Map<String, User> users = new ConcurrentHashMap<>();
 
 	/**
 	 * Registers a new user
@@ -32,6 +32,7 @@ public class UserManager extends RemoteServer implements UserManagerAPI {
 
 		if (username.contains(File.separator))
 			return false;
+
 		return users.putIfAbsent(username, new User(username, password)) == null;
 	}
 

@@ -234,10 +234,14 @@ public class Operation {
 	 * @param textField the chat message field
 	 */
 	public static void sendMessage(JTextField textField) {
+		String message = textField.getText();
+		if (message.isBlank())
+			return;
+
 		// create and edit request
 		JSONObject request = new JSONObject();
 		request.put(Fields.OPERATION, Fields.OPERATION_CHAT_MSG)
-				.put(Fields.CHAT_MSG, textField.getText());
+				.put(Fields.CHAT_MSG, message);
 
 		textField.setText("");
 		JSONObject reply = connection.requestReply(request);

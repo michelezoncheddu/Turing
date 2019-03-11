@@ -3,14 +3,14 @@ package turing.server;
 import turing.server.exceptions.InexistentDocumentException;
 import turing.server.exceptions.UserNotAllowedException;
 
-import java.util.AbstractMap;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Implements a concurrent document manager
  */
 public class DocumentManager {
-	private static AbstractMap<String, Document> documents = new ConcurrentHashMap<>();
+	private static Map<String, Document> documents = new HashMap<>();
 
 	// singleton
 	private DocumentManager() {}

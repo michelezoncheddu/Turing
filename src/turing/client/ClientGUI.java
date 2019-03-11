@@ -213,7 +213,7 @@ public class ClientGUI extends JFrame {
 		editingPanel.add(editingScroll, BorderLayout.CENTER);
 
 		// chatPanel
-		JTextArea chatArea = new JTextArea("No messages yet", 32, 24);
+		JTextArea chatArea = new JTextArea(32, 24);
 		JTextField chatField = new JTextField("Message");
 		JButton sendButton = new JButton("Send");
 		chatArea.setEditable(false);
