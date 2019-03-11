@@ -4,6 +4,7 @@ import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import javax.swing.*;
@@ -17,6 +18,7 @@ public class ClientGUI extends JFrame {
 	private Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
 	private Connection connection; // connection with the server
+	private ChatListener chatListener = null;
 
 	private ArrayList<Document> documents;
 	private DefaultTableModel documentsTableModel, sectionsTableModel;
@@ -101,6 +103,11 @@ public class ClientGUI extends JFrame {
 	 * Creates the workspace window
 	 */
 	public void createWorkspace() {
+		if (chatListener != null) {
+			chatListener.shutdown();
+			chatListener = null;
+		}
+
 		setVisible(false);
 		getContentPane().removeAll();
 		int width = (int) (screenSize.width * 0.8);
@@ -178,7 +185,7 @@ public class ClientGUI extends JFrame {
 	/**
 	 * Creates the document editing window
 	 */
-	public void createEditingWindow(String documentText) {
+	public void createEditingWindow(String documentText, InetAddress chatAddress) {
 		setVisible(false);
 		getContentPane().removeAll();
 		setLayout(new BorderLayout());
@@ -202,8 +209,8 @@ public class ClientGUI extends JFrame {
 
 		// editingPanel
 		editingArea.setWrapStyleWord(true);
-		JScrollPane editingScroll = new JScrollPane (editingArea,
-				JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		JScrollPane editingScroll = new JScrollPane (
+				editingArea, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		editingPanel.add(editingScroll, BorderLayout.CENTER);
 
 		// chatPanel
@@ -211,12 +218,15 @@ public class ClientGUI extends JFrame {
 		JTextField chatField = new JTextField("Message");
 		JButton sendButton = new JButton("Send");
 		chatArea.setEditable(false);
-		JScrollPane chatScroll = new JScrollPane (chatArea,
-				JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-		sendButton.addActionListener(event -> Operation.sendMessage(chatField.getText()));
+		JScrollPane chatScroll = new JScrollPane (
+				chatArea, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		sendButton.addActionListener(event -> Operation.sendMessage(chatField));
 		chatPanel.add(chatScroll, BorderLayout.NORTH);
 		chatPanel.add(chatField, BorderLayout.CENTER);
 		chatPanel.add(sendButton, BorderLayout.SOUTH);
+
+		chatListener = new ChatListener(chatAddress, chatArea);
+		new Thread(chatListener).start();
 
 		add(buttonsPanel, BorderLayout.WEST);
 		add(editingPanel, BorderLayout.CENTER);

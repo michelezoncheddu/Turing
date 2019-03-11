@@ -1,5 +1,6 @@
 package turing.client;
 
+import javax.swing.*;
 import java.net.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
@@ -8,41 +9,48 @@ import java.nio.channels.DatagramChannel;
  * Thread for listening chat messages
  */
 public class ChatListener implements Runnable {
-	private InetAddress groupAddress;
+	private InetAddress chatAddress;
+	private JTextArea chatArea;
+	private boolean run;
 
 	/**
 	 * Creates a new chat listener
 	 *
-	 * @param address the address to listen
+	 * @param chatAddress the address to listen
+	 * @param chatArea    the chat messages text area
 	 */
-	public ChatListener(String address) {
-		try {
-			groupAddress = InetAddress.getByName(address);
-		} catch (UnknownHostException e) {
-			e.printStackTrace();
-			groupAddress = null;
-		}
+	public ChatListener(InetAddress chatAddress, JTextArea chatArea) {
+		this.chatAddress = chatAddress;
+		this.chatArea = chatArea;
+		this.run = true;
 	}
 
 	@Override
 	public void run() {
-		while (true) {
+		while (run) {
 			try {
 				NetworkInterface networkInterface = NetworkInterface.getByInetAddress(InetAddress.getByName("localhost"));
 				DatagramChannel channel = DatagramChannel.open();
 				channel.setOption(StandardSocketOptions.SO_REUSEADDR, true);
 				channel.setOption(StandardSocketOptions.IP_MULTICAST_IF, networkInterface);
 				channel.bind(new InetSocketAddress(Client.CHAT_PORT));
-				channel.join(groupAddress, networkInterface);
+				channel.join(chatAddress, networkInterface);
 
-				ByteBuffer byteBuffer = ByteBuffer.allocate(1024);
+				ByteBuffer byteBuffer = ByteBuffer.allocate(1024); // enough?
 				byteBuffer.clear();
-				channel.receive(byteBuffer);
+				channel.receive(byteBuffer); // locking?
 				byteBuffer.flip();
-				System.out.println(new String(byteBuffer.array()).trim());
+				chatArea.append(new String(byteBuffer.array()).trim());
 			} catch (Exception e) {
-				e.printStackTrace();
+				Client.frame.showErrorDialog(e.getMessage());
 			}
 		}
+	}
+
+	/**
+	 * Terminates the thread
+	 */
+	public void shutdown() {
+		this.run = false;
 	}
 }

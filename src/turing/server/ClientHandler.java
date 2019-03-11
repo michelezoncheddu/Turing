@@ -286,7 +286,7 @@ public class ClientHandler implements Runnable {
 			JSONObject reply = new JSONObject();
 			reply.put(Fields.STATUS, Fields.STATUS_OK)
 					.put(Fields.SECTION_CONTENT, content)
-					.put(Fields.CHAT_ADDRESS, document.getChatAddress());
+					.put(Fields.CHAT_ADDRESS, document.getChatAddress().getHostAddress());
 			writer.write(reply.toString());
 			writer.newLine();
 			writer.flush();

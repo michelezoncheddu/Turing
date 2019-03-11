@@ -6,6 +6,8 @@ import turing.Fields;
 import turing.UserManagerAPI;
 
 import javax.swing.*;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.rmi.NotBoundException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
@@ -145,7 +147,13 @@ public class Operation {
 			return;
 		}
 
-		Client.frame.createEditingWindow((String) reply.get(Fields.SECTION_CONTENT));
+		InetAddress chatAddress = null;
+		try {
+			chatAddress = InetAddress.getByName((String) reply.get(Fields.CHAT_ADDRESS));
+		} catch (UnknownHostException e) {
+			Client.frame.showErrorDialog("Chat unavailable");
+		}
+		Client.frame.createEditingWindow((String) reply.get(Fields.SECTION_CONTENT), chatAddress);
 	}
 
 	/**
@@ -223,14 +231,15 @@ public class Operation {
 	/**
 	 * Performs the send of a chat message
 	 *
-	 * @param message the message to send
+	 * @param textField the chat message field
 	 */
-	public static void sendMessage(String message) {
+	public static void sendMessage(JTextField textField) {
 		// create and edit request
 		JSONObject request = new JSONObject();
 		request.put(Fields.OPERATION, Fields.OPERATION_CHAT_MSG)
-				.put(Fields.CHAT_MSG, message);
+				.put(Fields.CHAT_MSG, textField.getText());
 
+		textField.setText("");
 		JSONObject reply = connection.requestReply(request);
 
 		if (isErrorMessage(reply))
