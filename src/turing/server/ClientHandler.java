@@ -354,13 +354,12 @@ public class ClientHandler implements Runnable {
 			return;
 		}
 
-		if (document.isSharedWith(user)) {
+		if (!document.shareWith(user)) {
 			sendError(docName + " already shared with " + user.getUsername());
 			System.err.println(docName + " already shared with " + user.getUsername());
 			return;
 		}
 
-		document.shareWith(user);
 		synchronized (user.sharedDocuments) {
 			if (!user.sharedDocuments.contains(document))
 				user.sharedDocuments.add(document);

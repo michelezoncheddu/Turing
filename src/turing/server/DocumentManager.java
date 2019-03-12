@@ -3,17 +3,15 @@ package turing.server;
 import turing.server.exceptions.InexistentDocumentException;
 import turing.server.exceptions.UserNotAllowedException;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * Implements a concurrent document manager
  */
-public class DocumentManager {
+public abstract class DocumentManager {
 	private static Map<String, Document> documents = new HashMap<>();
-
-	// singleton
-	private DocumentManager() {}
 
 	/**
 	 * Adds a new document in the collection
@@ -93,7 +91,7 @@ public class DocumentManager {
 	 * @return the key string
 	 */
 	public static String makeKey(Document document) {
-		return document.getCreator().getUsername() + "/" + document.getName();
+		return document.getCreator().getUsername() + File.separator + document.getName();
 	}
 
 	/**
@@ -105,6 +103,6 @@ public class DocumentManager {
 	 * @return the key string
 	 */
 	public static String makeKey(String creatorUsername, String documentName) {
-		return creatorUsername + "/" + documentName;
+		return creatorUsername + File.separator + documentName;
 	}
 }

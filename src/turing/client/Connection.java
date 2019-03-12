@@ -31,6 +31,7 @@ public class Connection {
 	 * @throws IOException if a network error occurs
 	 */
 	public Connection(InetSocketAddress address) throws IOException {
+		System.setProperty("java.net.preferIPv4Stack", "true");
 		Socket defaultConnection = new Socket();
 		defaultConnection.connect(address);
 		writer = new BufferedWriter(new OutputStreamWriter(defaultConnection.getOutputStream(), StandardCharsets.UTF_8));

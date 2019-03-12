@@ -40,7 +40,7 @@ public class ChatListener implements Runnable {
 		}
 
 		while (true) {
-			ByteBuffer byteBuffer = ByteBuffer.allocate(1024); // TODO: enough?
+			ByteBuffer byteBuffer = ByteBuffer.allocate(Client.MTU);
 			byteBuffer.clear();
 			try {
 				channel.receive(byteBuffer);

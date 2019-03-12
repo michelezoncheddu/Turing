@@ -9,9 +9,10 @@ import java.net.InetSocketAddress;
 public class Client {
 	static final String REGISTRATION_OBJECT = "reg";
 	static final String NOTIFICATION_OBJECT = "not";
-	static final String HOST                = "localhost"; // TODO: global?
+	static final String HOST                = "localhost";
 	static final int    DEFAULT_PORT        = 1100;
 	static final int    CHAT_PORT           = 1101;
+	static final int    MTU                 = 1500; // Ethernet MTU
 	static final InetSocketAddress DEFAULT_ADDRESS = new InetSocketAddress(HOST, DEFAULT_PORT);
 
 	// application frame

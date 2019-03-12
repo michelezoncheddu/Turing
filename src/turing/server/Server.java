@@ -6,6 +6,8 @@ import turing.UserManagerAPI;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.rmi.AlreadyBoundException;
+import java.rmi.RemoteException;
 import java.rmi.registry.*;
 import java.rmi.server.*;
 import java.util.concurrent.Executors;
@@ -18,8 +20,9 @@ import static java.lang.System.out;
  * Implements the turing server
  */
 public class Server implements Runnable {
-	static final String DOCS_ROOT = "docs";
-	static final int    CHAT_PORT = 1101;
+	static final String DOCS_ROOT = "docs"; // documents folder
+	static final int    CHAT_PORT = 1101;   // multicast port
+	static final int    MTU       = 1500;   // Ethernet MTU
 
 	// global managers
 	static UserManager               userManager;
@@ -36,11 +39,10 @@ public class Server implements Runnable {
 		notificationManager = new ServerNotificationManager();
 		exportObjects(userManager, notificationManager);
 
+		System.setProperty("java.net.preferIPv4Stack", "true");
+
 		ServerSocket serverSocket;
 		Socket clientConnection;
-
-		// initialize the thread pool
-		ThreadPoolExecutor threadPool = (ThreadPoolExecutor) Executors.newCachedThreadPool();
 
 		try {
 			serverSocket = new ServerSocket(DEFAULT_PORT);
@@ -49,7 +51,8 @@ public class Server implements Runnable {
 			return;
 		}
 
-		System.setProperty("java.net.preferIPv4Stack", "true");
+		// initialize the thread pool
+		ThreadPoolExecutor threadPool = (ThreadPoolExecutor) Executors.newCachedThreadPool();
 
 		out.println("Server ready, waiting for connections...");
 
@@ -90,7 +93,7 @@ public class Server implements Runnable {
 	 */
 	private void exportObjects(UserManagerAPI userManager, ServerNotificationManagerAPI notificationManager) {
 		int    RMI_PORT            = 1099;
-		String REGISTRATION_OBJECT = "reg"; // TODO: make shared
+		String REGISTRATION_OBJECT = "reg";
 		String NOTIFICATION_OBJECT = "not";
 
 		try {
@@ -105,8 +108,8 @@ public class Server implements Runnable {
 			// publishing the stubs into the registry
 			registry.bind(REGISTRATION_OBJECT, userManagerStub);
 			registry.bind(NOTIFICATION_OBJECT, notificationStub);
-		} catch (Exception e) { // TODO: generic Exception
-			e.printStackTrace(); // TODO: System.exit?
+		} catch (RemoteException | AlreadyBoundException e) {
+			e.printStackTrace();
 		}
 	}
 

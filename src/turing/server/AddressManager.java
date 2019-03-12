@@ -7,12 +7,9 @@ import java.util.TreeSet;
 /**
  * Implements a concurrent multicast address manager
  */
-public class AddressManager {
+public abstract class AddressManager {
 	private static TreeSet<InetAddress> addresses = new TreeSet<>(new InetAddressComparator());
 	private static int c = 0, b = 0, a = 0;
-
-	// singleton
-	private AddressManager() {}
 
 	/**
 	 * Creates and saves a new multicast address
@@ -48,6 +45,9 @@ public class AddressManager {
 		addresses.remove(address);
 	}
 
+	/**
+	 * Generates the next multicast address
+	 */
 	private static void nextAddress() {
 		a = (a + 1) % 256;
 		if (a == 0) {

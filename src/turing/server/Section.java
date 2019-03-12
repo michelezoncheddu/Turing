@@ -9,7 +9,7 @@ import java.util.List;
  */
 public class Section {
 	private final Document parent;
-	private Path path;
+	private final Path path;
 	private User editingUser = null; // that is currently editing
 
 	/**
@@ -63,8 +63,11 @@ public class Section {
 		editingUser = null; // unlock section
 		parent.removeEditingUser();
 
-		if (content != null) // save changes
-			Files.writeString(path, content, StandardOpenOption.TRUNCATE_EXISTING);
+		if (content != null) { // save changes
+			synchronized (path) { // because of getContent method
+				Files.writeString(path, content, StandardOpenOption.TRUNCATE_EXISTING);
+			}
+		}
 	}
 
 	/**
@@ -76,7 +79,10 @@ public class Section {
 	 */
 	public String getContent() throws IOException {
 		StringBuilder data = new StringBuilder();
-		List<String> list = Files.readAllLines(path);
+		List<String> list;
+		synchronized (path) {
+			list = Files.readAllLines(path);
+		}
 		for (String line : list) {
 			data.append(line);
 			data.append(System.lineSeparator());

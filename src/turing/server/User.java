@@ -132,7 +132,7 @@ public class User {
 	 * @throws RemoteException if a RMI communication error occurs
 	 */
 	public void sendNotification(String notification) throws RemoteException {
-		synchronized (this) { // because notifier cannot change while sending notification
+		synchronized (this) { // because notifier must not change while sending notification
 			if (notifier != null)
 				notifier.sendNotification(notification);
 			else
@@ -146,7 +146,7 @@ public class User {
 	 * @throws RemoteException if a RMI communication error occurs
 	 */
 	public void flushPendingNotifications() throws RemoteException {
-		synchronized (this) { // because notifier cannot change while sending notification
+		synchronized (this) { // because notifier must not change while sending notification
 			if (notifier == null)
 				return;
 

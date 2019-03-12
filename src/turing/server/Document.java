@@ -99,21 +99,9 @@ public class Document {
 	public boolean isShared() { return !allowedUsers.isEmpty(); }
 
 	/**
-	 * Checks if the document is shared with a specific user
-	 *
-	 * @param user the user to search
-	 *
-	 * @return true if the document is shared with the user
-	 *         false otherwise
-	 */
-	public boolean isSharedWith(User user) {
-		return allowedUsers.contains(user);
-	}
-
-	/**
 	 * Adds an editing user and eventually starts the chat
 	 */
-	public synchronized void addEditingUser() {
+	public void addEditingUser() {
 		editingUsers++;
 		if (chatAddress == null) // first editing user joined
 			openChat(AddressManager.createAddress());
@@ -122,7 +110,7 @@ public class Document {
 	/**
 	 * Removes an editing user and eventually closes the chat
 	 */
-	public synchronized void removeEditingUser() {
+	public void removeEditingUser() {
 		editingUsers--;
 		if (editingUsers == 0) { // last editing user left
 			closeChat();
@@ -159,10 +147,16 @@ public class Document {
 	 * Share the document with another user
 	 *
 	 * @param user the user to share with
+	 *
+	 * @return true if the document wasn't already shared with that user
+	 * 	       false otherwise
 	 */
-	public synchronized void shareWith(User user) {
-		if (user != creator && !allowedUsers.contains(user)) // if not already shared
-			allowedUsers.add(user);
+	public boolean shareWith(User user) {
+		if (allowedUsers.contains(user)) // if already shared with user
+			return false;
+
+		allowedUsers.add(user);
+		return true;
 	}
 
 	/**
@@ -174,11 +168,13 @@ public class Document {
 	 */
 	public void sendMessage(String message, String username) throws IOException {
 		String toSend = username + ": " + message;
+		if (toSend.length() > Server.MTU)
+			toSend = toSend.substring(0, Server.MTU);
 		ByteBuffer buffer = ByteBuffer.allocate(toSend.length());
+		System.out.println(toSend.length());
 		buffer.put(toSend.getBytes());
 		buffer.flip();
-		// while (buffer.hasRemaining())
-		channel.send(buffer, groupAddress); // TODO: try with big messages
+		channel.send(buffer, groupAddress);
 	}
 
 	/**
