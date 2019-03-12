@@ -1,6 +1,7 @@
 package turing.server;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import turing.Fields;
 
 import org.json.JSONObject;
@@ -11,7 +12,10 @@ import turing.server.exceptions.UserNotAllowedException;
 import java.io.*;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
+import java.rmi.RemoteException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static java.lang.System.out;
 
@@ -19,6 +23,10 @@ import static java.lang.System.out;
  * A thread that implements the operations of a individual client
  */
 public class ClientHandler implements Runnable {
+	private static Map<String, Runnable> operations = null;
+
+	private JSONObject request;
+
 	private Socket clientConnection; // connection with the client
 	private BufferedWriter writer;   // output stream with the client
 	private User currentUser = null; // currently logged user
@@ -30,6 +38,17 @@ public class ClientHandler implements Runnable {
 	 */
 	public ClientHandler(Socket clientConnection) {
 		this.clientConnection = clientConnection;
+		if (operations == null) {
+			operations = new HashMap<>();
+			operations.put(Fields.OPERATION_LOGIN, this::login);
+			operations.put(Fields.OPERATION_LOGOUT, this::logout);
+			operations.put(Fields.OPERATION_CREATE_DOC, this::createDocument);
+			operations.put(Fields.OPERATION_EDIT_SECTION, this::editSection);
+			operations.put(Fields.OPERATION_END_EDIT, this::endEdit);
+			operations.put(Fields.OPERATION_INVITE, this::invite);
+			operations.put(Fields.OPERATION_LIST, this::list);
+			operations.put(Fields.OPERATION_CHAT_MSG, this::chatMessage);
+		}
 	}
 
 	/**
@@ -50,9 +69,9 @@ public class ClientHandler implements Runnable {
 
 		while (true) {
 			// read request
-			String reqString;
+			String requestString;
 			try {
-				reqString = reader.readLine();
+				requestString = reader.readLine();
 			} catch (IOException e) { // communication error with the client
 				logout();
 				e.printStackTrace();
@@ -60,7 +79,7 @@ public class ClientHandler implements Runnable {
 			}
 
 			// client disconnected
-			if (reqString == null) {
+			if (requestString == null) {
 				logout();
 				try {
 					reader.close();
@@ -73,14 +92,28 @@ public class ClientHandler implements Runnable {
 				break;
 			}
 
-			// TODO: validate messages format, check if currentUser is NOT NULL and currentUser is the same inside req
-			JSONObject req = new JSONObject(reqString);
+			// parsing request
 			try {
-				handleOperation(req);
-			} catch (IOException e) { // communication error with the client
-				logout();
-				e.printStackTrace();
+				request = new JSONObject(requestString);
+			} catch (JSONException e) {
+				sendError(e.getMessage());
+				continue;
 			}
+
+			// validating request
+			if (!request.has(Fields.OPERATION) || !(request.get(Fields.OPERATION) instanceof String)) {
+				sendError("Bad request format");
+				continue;
+			}
+
+			String operation = (String) request.get(Fields.OPERATION);
+			Runnable handler = operations.get(operation);
+			if (handler == null) {
+				sendError("Inexistent operation: " + operation);
+				continue;
+			}
+			// TODO: check HERE if currentUser is NOT NULL
+			handler.run();
 		}
 
 		// terminating thread
@@ -97,87 +130,56 @@ public class ClientHandler implements Runnable {
 
 	/**
 	 * Sends a ack message to the client
-	 *
-	 * @throws IOException if a network error occurs
 	 */
-	private void sendAck() throws IOException {
+	private void sendAck() {
 		JSONObject message = new JSONObject();
 		message.put(Fields.STATUS, Fields.STATUS_OK);
-		writer.write(message.toString());
-		writer.newLine();
-		writer.flush();
+		try {
+			writer.write(message.toString());
+			writer.newLine();
+			writer.flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * Sends a message to the client
+	 *
+	 * @param message the message to send
+	 */
+	private void sendMessage(JSONObject message) {
+		try {
+			writer.write(message.toString());
+			writer.newLine();
+			writer.flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**
 	 * Sends a error message to the client
 	 *
 	 * @param msg the explanation of the error to be sent
-	 *
-	 * @throws IOException if a network error occurs
 	 */
-	private void sendError(String msg) throws IOException {
+	private void sendError(String msg) {
 		JSONObject message = new JSONObject();
 		message.put(Fields.STATUS, Fields.STATUS_ERR)
 				.put(Fields.ERR_MSG, msg);
-		writer.write(message.toString());
-		writer.newLine();
-		writer.flush();
-	}
-
-	/**
-	 * Switches the request to the handlers
-	 *
-	 * @param request the message to handle
-	 *
-	 * @throws IOException if a network error occurs
-	 */
-	private void handleOperation(JSONObject request) throws IOException {
-		switch ((String) request.get(Fields.OPERATION)) {
-		case Fields.OPERATION_LOGIN:
-			login(request);
-			break;
-
-		case Fields.OPERATION_LOGOUT:
-			logout();
-			break;
-
-		case Fields.OPERATION_CREATE_DOC:
-			createDocument(request);
-			break;
-
-		case Fields.OPERATION_EDIT_SECTION:
-			editSection(request);
-			break;
-
-		case Fields.OPERATION_END_EDIT:
-			endEdit(request);
-			break;
-
-		case Fields.OPERATION_INVITE:
-			invite(request);
-			break;
-
-		case Fields.OPERATION_LIST:
-			list();
-			break;
-
-		case Fields.OPERATION_CHAT_MSG:
-			sendMessage(request);
-			break;
-
-		default:
-			System.err.println("Operation " + request.get(Fields.OPERATION) + " unknown");
+		try {
+			writer.write(message.toString());
+			writer.newLine();
+			writer.flush();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
 
 	/**
 	 * Implements the login operation
-	 *
-	 * @param request the client request
-	 *
-	 * @throws IOException if a network error occurs
 	 */
-	private void login(JSONObject request) throws IOException {
+	private void login() {
 		// parsing request
 		String username = (String) request.get(Fields.USERNAME);
 		String password = (String) request.get(Fields.PASSWORD);
@@ -217,12 +219,8 @@ public class ClientHandler implements Runnable {
 
 	/**
 	 * Implements the create document operation
-	 *
-	 * @param request the client request
-	 *
-	 * @throws IOException if a network error occurs
 	 */
-	private void createDocument(JSONObject request) throws IOException {
+	private void createDocument() {
 		// parsing request
 		String docName = (String) request.get(Fields.DOCUMENT_NAME);
 		int sections = (Integer) request.get(Fields.NUMBER_OF_SECTIONS);
@@ -234,6 +232,9 @@ public class ClientHandler implements Runnable {
 		} catch (PreExistentDocumentException e) {
 			sendError("Document already created");
 			return;
+		} catch (IOException e) { // disk error
+			sendError(e.getMessage());
+			return;
 		}
 		currentUser.addDocument(newDoc);
 		DocumentManager.put(newDoc);
@@ -242,12 +243,8 @@ public class ClientHandler implements Runnable {
 
 	/**
 	 * Implements the edit section operation
-	 *
-	 * @param request the client request
-	 *
-	 * @throws IOException if a network error occurs
 	 */
-	private void editSection(JSONObject request) throws IOException {
+	private void editSection() {
 		if (currentUser.getEditingSection() != null) {
 			sendError("You're already editing a section");
 			return;
@@ -282,14 +279,18 @@ public class ClientHandler implements Runnable {
 			currentUser.setEditingSection(section); // lock user
 
 			// send section content
-			String content = section.getContent();
+			String content;
+			try {
+				content = section.getContent();
+			} catch (IOException e) { // disk error
+				sendError(e.getMessage());
+				return;
+			}
 			JSONObject reply = new JSONObject();
 			reply.put(Fields.STATUS, Fields.STATUS_OK)
 					.put(Fields.SECTION_CONTENT, content)
 					.put(Fields.CHAT_ADDRESS, document.getChatAddress().getHostAddress());
-			writer.write(reply.toString());
-			writer.newLine();
-			writer.flush();
+			sendMessage(reply);
 		} else {
 			sendError("Another user is editing this section");
 		}
@@ -297,12 +298,8 @@ public class ClientHandler implements Runnable {
 
 	/**
 	 * Implements the end edit operation
-	 *
-	 * @param request the client request
-	 *
-	 * @throws IOException if a network error occurs
 	 */
-	private void endEdit(JSONObject request) throws IOException {
+	private void endEdit() {
 		Section section = currentUser.getEditingSection();
 
 		// user isn't editing any section
@@ -314,17 +311,20 @@ public class ClientHandler implements Runnable {
 		// new section content
 		String content = request.has(Fields.SECTION_CONTENT) ? (String) request.get(Fields.SECTION_CONTENT) : null;
 
-		section.endEdit(currentUser, content); // unlock section
-		currentUser.setEditingSection(null);   // unlock user
+		// unlock section
+		try {
+			section.endEdit(currentUser, content);
+		} catch (IOException e) {
+			sendError(e.getMessage());
+		}
+		currentUser.setEditingSection(null); // unlock user
 		sendAck();
 	}
 
 	/**
 	 * Implements the invite operation
-	 *
-	 * @param request the client request
 	 */
-	private void invite(JSONObject request) throws IOException {
+	private void invite() {
 		// parsing request
 		String username = (String) request.get(Fields.USERNAME);
 		String creator  = (String) request.get(Fields.DOCUMENT_CREATOR);
@@ -370,21 +370,28 @@ public class ClientHandler implements Runnable {
 				.put(Fields.DOCUMENT_CREATOR, document.getCreator().getUsername())
 				.put(Fields.NUMBER_OF_SECTIONS, document.getNumberOfSections())
 				.put(Fields.IS_SHARED, document.isShared());
-		user.sendNotification(notification.toString());
+
+		// because RMI calls are not asynchronous
+		new Thread(() -> {
+				try {
+					user.sendNotification(notification.toString());
+				} catch (RemoteException e) {
+					e.printStackTrace();
+				}
+		}).start();
+
 		sendAck();
 	}
 
 	/**
 	 * Implements the list operation
-	 *
-	 * @throws IOException if a network error occurs
 	 */
-	private void list() throws IOException {
-		JSONObject message = new JSONObject();
+	private void list() {
+		JSONObject reply = new JSONObject();
 		JSONObject document;
 		List<Document> myDocuments = currentUser.getMyDocuments();
 
-		message.put(Fields.STATUS, Fields.STATUS_OK);
+		reply.put(Fields.STATUS, Fields.STATUS_OK);
 		JSONArray docArray = new JSONArray();
 		for (Document myDoc : myDocuments) {
 			document = new JSONObject();
@@ -404,20 +411,14 @@ public class ClientHandler implements Runnable {
 				docArray.put(document);
 			}
 		}
-		message.put(Fields.DOCUMENTS, docArray);
-		writer.write(message.toString());
-		writer.newLine();
-		writer.flush();
+		reply.put(Fields.DOCUMENTS, docArray);
+		sendMessage(reply);
 	}
 
 	/**
 	 * Implements the send of a chat message
-	 *
-	 * @param request the client request
-	 *
-	 * @throws IOException if a network error occurs
 	 */
-	private void sendMessage(JSONObject request) throws IOException {
+	private void chatMessage() {
 		Section section = currentUser.getEditingSection();
 
 		// user isn't editing any section
@@ -426,7 +427,7 @@ public class ClientHandler implements Runnable {
 			return;
 		}
 
-		section.getParent().sendMessage((String) request.get(Fields.CHAT_MSG), currentUser.getUsername());
+		section.getParent().sendChatMessage((String) request.get(Fields.CHAT_MSG), currentUser.getUsername());
 		sendAck();
 	}
 }

@@ -100,6 +100,7 @@ public class Document {
 
 	/**
 	 * Adds an editing user and eventually starts the chat
+	 * No need of synchronization because the method call is already synchronized
 	 */
 	public void addEditingUser() {
 		editingUsers++;
@@ -109,6 +110,7 @@ public class Document {
 
 	/**
 	 * Removes an editing user and eventually closes the chat
+	 * No need of synchronization because the method call is already synchronized
 	 */
 	public void removeEditingUser() {
 		editingUsers--;
@@ -163,18 +165,19 @@ public class Document {
 	 * Sends a message to the chat channel
 	 *
 	 * @param message the message to send
-	 *
-	 * @throws IOException if a network error occurs
 	 */
-	public void sendMessage(String message, String username) throws IOException {
+	public void sendChatMessage(String message, String username) {
 		String toSend = username + ": " + message;
 		if (toSend.length() > Server.MTU)
 			toSend = toSend.substring(0, Server.MTU);
 		ByteBuffer buffer = ByteBuffer.allocate(toSend.length());
-		System.out.println(toSend.length());
 		buffer.put(toSend.getBytes());
 		buffer.flip();
-		channel.send(buffer, groupAddress);
+		try {
+			channel.send(buffer, groupAddress);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**
