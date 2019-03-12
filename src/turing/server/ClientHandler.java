@@ -13,9 +13,7 @@ import java.io.*;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.rmi.RemoteException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static java.lang.System.out;
 
@@ -23,10 +21,6 @@ import static java.lang.System.out;
  * A thread that implements the operations of a individual client
  */
 public class ClientHandler implements Runnable {
-	private static Map<String, Runnable> operations = null;
-
-	private JSONObject request;
-
 	private Socket clientConnection; // connection with the client
 	private BufferedWriter writer;   // output stream with the client
 	private User currentUser = null; // currently logged user
@@ -38,17 +32,6 @@ public class ClientHandler implements Runnable {
 	 */
 	public ClientHandler(Socket clientConnection) {
 		this.clientConnection = clientConnection;
-		if (operations == null) {
-			operations = new HashMap<>();
-			operations.put(Fields.OPERATION_LOGIN, this::login);
-			operations.put(Fields.OPERATION_LOGOUT, this::logout);
-			operations.put(Fields.OPERATION_CREATE_DOC, this::createDocument);
-			operations.put(Fields.OPERATION_EDIT_SECTION, this::editSection);
-			operations.put(Fields.OPERATION_END_EDIT, this::endEdit);
-			operations.put(Fields.OPERATION_INVITE, this::invite);
-			operations.put(Fields.OPERATION_LIST, this::list);
-			operations.put(Fields.OPERATION_CHAT_MSG, this::chatMessage);
-		}
 	}
 
 	/**
@@ -89,10 +72,11 @@ public class ClientHandler implements Runnable {
 					e.printStackTrace();
 				}
 				out.println("Client disconnected");
-				break;
+				break; // terminate thread
 			}
 
 			// parsing request
+			JSONObject request;
 			try {
 				request = new JSONObject(requestString);
 			} catch (JSONException e) {
@@ -101,19 +85,13 @@ public class ClientHandler implements Runnable {
 			}
 
 			// validating request
-			if (!request.has(Fields.OPERATION) || !(request.get(Fields.OPERATION) instanceof String)) {
+			if (!isValid(request)) {
 				sendError("Bad request format");
 				continue;
 			}
 
-			String operation = (String) request.get(Fields.OPERATION);
-			Runnable handler = operations.get(operation);
-			if (handler == null) {
-				sendError("Inexistent operation: " + operation);
-				continue;
-			}
+			handleOperation(request);
 			// TODO: check HERE if currentUser is NOT NULL
-			handler.run();
 		}
 
 		// terminating thread
@@ -125,6 +103,77 @@ public class ClientHandler implements Runnable {
 			e.printStackTrace();
 		} finally {
 			out.println("Thread " + Thread.currentThread() + " terminated");
+		}
+	}
+
+	/**
+	 * Checks if the message request is valid
+	 *
+	 * @param request the message request to validate
+	 *
+	 * @return true if the request contains all the needed fields
+	 *         false otherwise
+	 */
+	private static boolean isValid(JSONObject request) {
+		if (!request.has(Fields.OPERATION) || !(request.get(Fields.OPERATION) instanceof String))
+			return false;
+
+		switch ((String) request.get(Fields.OPERATION)) {
+		case Fields.OPERATION_LOGIN:
+			return request.has(Fields.USERNAME) && request.has(Fields.PASSWORD);
+
+		case Fields.OPERATION_CREATE_DOC:
+			return request.has(Fields.DOCUMENT_NAME) && request.has(Fields.NUMBER_OF_SECTIONS);
+
+		case Fields.OPERATION_EDIT_SECTION:
+		 return request.has(Fields.DOCUMENT_CREATOR) && request.has(Fields.DOCUMENT_NAME) &&
+				 request.has(Fields.DOCUMENT_SECTION);
+
+		case Fields.OPERATION_INVITE:
+		return request.has(Fields.USERNAME) && request.has(Fields.DOCUMENT_CREATOR) &&
+				request.has(Fields.DOCUMENT_NAME);
+
+		case Fields.OPERATION_CHAT_MSG:
+			return request.has(Fields.CHAT_MSG);
+
+		default:
+			return true; // no fields needed
+		}
+	}
+
+	private void handleOperation(JSONObject request) {
+		switch ((String) request.get(Fields.OPERATION)) {
+		case Fields.OPERATION_LOGIN:
+			login(request);
+			break;
+
+		case Fields.OPERATION_LOGOUT:
+			logout();
+			break;
+
+		case Fields.OPERATION_CREATE_DOC:
+			createDocument(request);
+			break;
+
+		case Fields.OPERATION_EDIT_SECTION:
+			editSection(request);
+			break;
+
+		case Fields.OPERATION_END_EDIT:
+			endEdit(request);
+			break;
+
+		case Fields.OPERATION_INVITE:
+			invite(request);
+			break;
+
+		case Fields.OPERATION_LIST:
+			list();
+			break;
+
+		case Fields.OPERATION_CHAT_MSG:
+			chatMessage(request);
+			break;
 		}
 	}
 
@@ -179,7 +228,7 @@ public class ClientHandler implements Runnable {
 	/**
 	 * Implements the login operation
 	 */
-	private void login() {
+	private void login(JSONObject request) {
 		// parsing request
 		String username = (String) request.get(Fields.USERNAME);
 		String password = (String) request.get(Fields.PASSWORD);
@@ -219,8 +268,10 @@ public class ClientHandler implements Runnable {
 
 	/**
 	 * Implements the create document operation
+	 *
+	 * @param request the client request
 	 */
-	private void createDocument() {
+	private void createDocument(JSONObject request) {
 		// parsing request
 		String docName = (String) request.get(Fields.DOCUMENT_NAME);
 		int sections = (Integer) request.get(Fields.NUMBER_OF_SECTIONS);
@@ -243,8 +294,10 @@ public class ClientHandler implements Runnable {
 
 	/**
 	 * Implements the edit section operation
+	 *
+	 * @param request the client request
 	 */
-	private void editSection() {
+	private void editSection(JSONObject request) {
 		if (currentUser.getEditingSection() != null) {
 			sendError("You're already editing a section");
 			return;
@@ -298,8 +351,10 @@ public class ClientHandler implements Runnable {
 
 	/**
 	 * Implements the end edit operation
+	 *
+	 * @param request the client request
 	 */
-	private void endEdit() {
+	private void endEdit(JSONObject request) {
 		Section section = currentUser.getEditingSection();
 
 		// user isn't editing any section
@@ -323,8 +378,10 @@ public class ClientHandler implements Runnable {
 
 	/**
 	 * Implements the invite operation
+	 *
+	 * @param request the client request
 	 */
-	private void invite() {
+	private void invite(JSONObject request) {
 		// parsing request
 		String username = (String) request.get(Fields.USERNAME);
 		String creator  = (String) request.get(Fields.DOCUMENT_CREATOR);
@@ -417,8 +474,10 @@ public class ClientHandler implements Runnable {
 
 	/**
 	 * Implements the send of a chat message
+	 *
+	 * @param request the client request
 	 */
-	private void chatMessage() {
+	private void chatMessage(JSONObject request) {
 		Section section = currentUser.getEditingSection();
 
 		// user isn't editing any section
