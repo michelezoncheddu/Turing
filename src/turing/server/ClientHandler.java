@@ -91,7 +91,6 @@ public class ClientHandler implements Runnable {
 			}
 
 			handleOperation(request);
-			// TODO: check HERE if currentUser is NOT NULL
 		}
 
 		// terminating thread
@@ -102,7 +101,7 @@ public class ClientHandler implements Runnable {
 		} catch (IOException e) {
 			e.printStackTrace();
 		} finally {
-			out.println("Thread " + Thread.currentThread() + " terminated");
+			out.println("Handler " + Thread.currentThread() + " terminated");
 		}
 	}
 
@@ -142,7 +141,15 @@ public class ClientHandler implements Runnable {
 	}
 
 	private void handleOperation(JSONObject request) {
-		switch ((String) request.get(Fields.OPERATION)) {
+		String operation = (String) request.get(Fields.OPERATION);
+		if (!operation.equals(Fields.OPERATION_LOGIN)) {
+			if (currentUser == null || !currentUser.isOnline()) {
+				sendError("You must be logged to request this operation");
+				return;
+			}
+		}
+
+		switch (operation) {
 		case Fields.OPERATION_LOGIN:
 			login(request);
 			break;
@@ -486,7 +493,10 @@ public class ClientHandler implements Runnable {
 			return;
 		}
 
-		section.getParent().sendChatMessage((String) request.get(Fields.CHAT_MSG), currentUser.getUsername());
-		sendAck();
+		String message = (String) request.get(Fields.CHAT_MSG);
+		if (section.getParent().sendChatMessage(message, currentUser.getUsername()))
+			sendAck();
+		else
+			sendError("Cannot send message");
 	}
 }

@@ -25,6 +25,8 @@ public class ClientGUI extends JFrame {
 	private Document lastSelectedDocument = null;
 	private int lastSelectedSection = -1;
 
+	String username = null;
+
 	/**
 	 * Creates the Graphical User Interface
 	 */
@@ -91,8 +93,8 @@ public class ClientGUI extends JFrame {
 		// prompt to confirm program closing
 		addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent e) {
-				if (JOptionPane.showConfirmDialog(null, "Close turing?", "Quit",
-						JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE) == JOptionPane.YES_OPTION)
+				if (JOptionPane.showConfirmDialog(Client.frame, "Close turing?", "Quit",
+						JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) == JOptionPane.YES_OPTION)
 					System.exit(0);
 			}
 		});
@@ -102,6 +104,7 @@ public class ClientGUI extends JFrame {
 	 * Creates the workspace window
 	 */
 	public void createWorkspace() {
+		setTitle("Turing - " + username);
 		if (chatListener != null) {
 			chatListener.shutdown();
 			chatListener = null;
@@ -185,6 +188,7 @@ public class ClientGUI extends JFrame {
 	 * Creates the document editing window
 	 */
 	public void createEditingWindow(String documentText, InetAddress chatAddress) {
+		setTitle("Turing - editing " + lastSelectedDocument.getName() + ", section " + (lastSelectedSection + 1));
 		setVisible(false);
 		getContentPane().removeAll();
 		setLayout(new BorderLayout());
@@ -328,6 +332,13 @@ public class ClientGUI extends JFrame {
 			Object[] data = {documents.get(documentIndex).getName() + " - section " + (i + 1), "n.d."}; // TODO: unused field
 			sectionsTableModel.addRow(data);
 		}
+	}
+
+	/**
+	 * Shows an error window with an information message and description
+	 */
+	public void showInfoDialog(String message) {
+		JOptionPane.showMessageDialog(Client.frame, message,"Info", JOptionPane.INFORMATION_MESSAGE);
 	}
 
 	/**

@@ -5,6 +5,9 @@ import turing.ServerNotificationManagerAPI;
 
 import java.rmi.RemoteException;
 
+/**
+ * Implements a server notification service
+ */
 public class ServerNotificationManager implements ServerNotificationManagerAPI {
 
 	/**

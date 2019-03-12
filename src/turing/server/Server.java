@@ -47,7 +47,7 @@ public class Server implements Runnable {
 		try {
 			serverSocket = new ServerSocket(DEFAULT_PORT);
 		} catch (IOException e) {
-			e.printStackTrace();
+			e.printStackTrace(); // cannot create socket
 			return;
 		}
 
@@ -69,7 +69,7 @@ public class Server implements Runnable {
 		}
 		out.println("Server stopped");
 
-		// closing defaultConnection
+		// closing socket
 		try {
 			serverSocket.close();
 		} catch (IOException e) {
@@ -109,7 +109,7 @@ public class Server implements Runnable {
 			registry.bind(REGISTRATION_OBJECT, userManagerStub);
 			registry.bind(NOTIFICATION_OBJECT, notificationStub);
 		} catch (RemoteException | AlreadyBoundException e) {
-			e.printStackTrace();
+			e.printStackTrace(); // TODO?
 		}
 	}
 

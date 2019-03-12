@@ -3,6 +3,9 @@ package turing;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 
+/**
+ * Interface for a server notification service
+ */
 public interface ServerNotificationManagerAPI extends Remote {
 
 	/**

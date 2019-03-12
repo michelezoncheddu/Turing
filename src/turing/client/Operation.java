@@ -17,7 +17,7 @@ import java.rmi.registry.Registry;
 /**
  * Class that performs the client operations
  */
-public class Operation {
+public abstract class Operation {
 	private static Connection connection; // connection with the server
 
 	/**
@@ -58,7 +58,7 @@ public class Operation {
 			// trying to register user
 			boolean success = serverObject.signUp(username, password);
 			if (success)
-				JOptionPane.showMessageDialog(Client.frame, username + " registered");
+				Client.frame.showInfoDialog(username + " registered");
 			else
 				Client.frame.showErrorDialog("Can't register " + username); // TODO: specify error and exceptions
 		} catch (RemoteException e) {
@@ -94,6 +94,7 @@ public class Operation {
 		}
 
 		connection.registerForNotifications(username, password);
+		Client.frame.username = username;
 		Client.frame.createWorkspace(); // create the workspace window
 		Operation.list();
 	}
@@ -197,7 +198,7 @@ public class Operation {
 		if (isErrorMessage(reply))
 			Client.frame.showErrorDialog((String) reply.get(Fields.ERR_MSG));
 		else
-			JOptionPane.showMessageDialog(Client.frame, username + " invited"); // TODO: set "shared" to "yes"
+			Client.frame.showInfoDialog(username + " invited"); // TODO: set "shared" to "yes"
 	}
 
 	/**

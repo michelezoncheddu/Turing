@@ -165,8 +165,11 @@ public class Document {
 	 * Sends a message to the chat channel
 	 *
 	 * @param message the message to send
+	 *
+	 * @return true if the message have been sent
+	 *         false otherwise
 	 */
-	public void sendChatMessage(String message, String username) {
+	public boolean sendChatMessage(String message, String username) {
 		String toSend = username + ": " + message;
 		if (toSend.length() > Server.MTU)
 			toSend = toSend.substring(0, Server.MTU);
@@ -176,8 +179,9 @@ public class Document {
 		try {
 			channel.send(buffer, groupAddress);
 		} catch (IOException e) {
-			e.printStackTrace();
+			return false;
 		}
+		return true;
 	}
 
 	/**
@@ -193,7 +197,7 @@ public class Document {
 			channel = DatagramChannel.open();
 			channel.setOption(StandardSocketOptions.IP_MULTICAST_IF, networkInterface);
 		} catch (IOException e) {
-			e.printStackTrace(); // TODO
+			e.printStackTrace(); // chat unavailable
 		}
 	}
 
@@ -204,7 +208,7 @@ public class Document {
 		try {
 			channel.close();
 		} catch (IOException e) {
-			e.printStackTrace(); // TODO
+			e.printStackTrace();
 		}
 		AddressManager.freeAddress(chatAddress);
 		chatAddress = null;

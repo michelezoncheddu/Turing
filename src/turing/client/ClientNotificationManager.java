@@ -4,11 +4,20 @@ import org.json.JSONObject;
 import turing.ClientNotificationManagerAPI;
 import turing.Fields;
 
-import javax.swing.*;
 import java.rmi.RemoteException;
 
+/**
+ * Implements a client notification service
+ */
 public class ClientNotificationManager implements ClientNotificationManagerAPI {
 
+	/**
+	 * Sends a notification to the client by the server
+	 *
+	 * @param notification the notification to send
+	 *
+	 * @throws RemoteException if a RMI communication error occurs
+	 */
 	public void sendNotification(String notification) throws RemoteException {
 		JSONObject document = new JSONObject(notification);
 		String  name     = (String)  document.get(Fields.DOCUMENT_NAME);
@@ -16,6 +25,6 @@ public class ClientNotificationManager implements ClientNotificationManagerAPI {
 		int     sections = (Integer) document.get(Fields.NUMBER_OF_SECTIONS);
 		boolean shared   = (Boolean) document.get(Fields.IS_SHARED);
 		Client.frame.addDocument(new Document(name, creator, sections, shared));
-		JOptionPane.showMessageDialog(Client.frame, creator + " invited you to edit " + name);
+		Client.frame.showInfoDialog(creator + " invited you to edit " + name);
 	}
 }
