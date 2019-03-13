@@ -147,6 +147,11 @@ public class ClientHandler implements Runnable {
 		}
 	}
 
+	/**
+	 * Switches the request to the handlers
+	 *
+	 * @param request the message to handle
+	 */
 	private void handleOperation(JSONObject request) {
 		String operation = (String) request.get(Fields.OP);
 		if (!operation.equals(Fields.OP_LOGIN)) {
@@ -155,7 +160,6 @@ public class ClientHandler implements Runnable {
 				return;
 			}
 		}
-
 		switch (operation) {
 		case Fields.OP_LOGIN:
 			login(request);
@@ -203,7 +207,7 @@ public class ClientHandler implements Runnable {
 	}
 
 	/**
-	 * Sends a ack message to the client
+	 * Sends an ack message to the client
 	 */
 	private void sendAck() {
 		JSONObject message = new JSONObject();
@@ -233,9 +237,9 @@ public class ClientHandler implements Runnable {
 	}
 
 	/**
-	 * Sends a error message to the client
+	 * Sends an error message to the client
 	 *
-	 * @param msg the explanation of the error to be sent
+	 * @param msg the explanation of the error to include in the message
 	 */
 	private void sendError(String msg) {
 		JSONObject message = new JSONObject();
@@ -252,6 +256,8 @@ public class ClientHandler implements Runnable {
 
 	/**
 	 * Implements the login operation
+	 *
+	 * @param request the client request
 	 */
 	private void login(JSONObject request) {
 		// parsing request
@@ -495,17 +501,20 @@ public class ClientHandler implements Runnable {
 			return;
 		}
 
+		// share the document
 		if (!document.shareWith(user)) {
 			sendError(docName + " already shared with " + user.getUsername());
 			System.err.println(docName + " already shared with " + user.getUsername());
 			return;
 		}
 
+		// share succeeded
 		synchronized (user.sharedDocuments) {
 			if (!user.sharedDocuments.contains(document))
 				user.sharedDocuments.add(document);
 		}
 
+		// creating notification message
 		JSONObject notification = new JSONObject();
 		notification.put(Fields.DOC_NAME, document.getName())
 				.put(Fields.DOC_CREATOR, document.getCreator().getUsername())
@@ -532,6 +541,7 @@ public class ClientHandler implements Runnable {
 		JSONObject document;
 		List<Document> myDocuments = currentUser.getMyDocuments();
 
+		// creating documents array
 		reply.put(Fields.STATUS, Fields.STATUS_OK);
 		JSONArray docArray = new JSONArray();
 		for (Document myDoc : myDocuments) {
@@ -570,6 +580,7 @@ public class ClientHandler implements Runnable {
 			return;
 		}
 
+		// sending chat message
 		String message = (String) request.get(Fields.CHAT_MSG);
 		if (section.getParent().sendChatMessage(message, currentUser.getUsername()))
 			sendAck();
@@ -578,12 +589,13 @@ public class ClientHandler implements Runnable {
 	}
 
 	/**
-	 * Gets a document for editing or showing it
+	 * Gets a document for editing or showing it, sending error messages if the document doesn't exists or
+	 * if the current user isn't allowed to get it
 	 *
 	 * @param docName the document name
 	 * @param creator the document creator
 	 *
-	 * @return the document, if the current user is allowed
+	 * @return the document, if the current user is allowed to get the document
 	 *         null otherwise
 	 */
 	private Document getDocument(String docName, String creator) {
