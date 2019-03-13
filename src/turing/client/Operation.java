@@ -82,7 +82,7 @@ public abstract class Operation {
 
 		// create login request
 		JSONObject request = new JSONObject();
-		request.put(Fields.OPERATION, Fields.OPERATION_LOGIN)
+		request.put(Fields.OP, Fields.OP_LOGIN)
 				.put(Fields.USERNAME, username)
 				.put(Fields.PASSWORD, password);
 
@@ -96,7 +96,7 @@ public abstract class Operation {
 		connection.registerForNotifications(username, password);
 		Client.frame.username = username;
 		Client.frame.createWorkspace(); // create the workspace window
-		Operation.list();
+		list();
 	}
 
 	/**
@@ -106,11 +106,11 @@ public abstract class Operation {
 	 * @param sections     number of sections of the document
 	 */
 	public static void createDocument(String documentName, int sections) {
-		// create create document request
+		// create a create document request
 		JSONObject request = new JSONObject();
-		request.put(Fields.OPERATION, Fields.OPERATION_CREATE_DOC)
-				.put(Fields.DOCUMENT_NAME, documentName)
-				.put(Fields.NUMBER_OF_SECTIONS, sections);
+		request.put(Fields.OP, Fields.OP_CREATE_DOC)
+				.put(Fields.DOC_NAME, documentName)
+				.put(Fields.SECTIONS, sections);
 
 		JSONObject reply = connection.requestReply(request);
 
@@ -119,7 +119,63 @@ public abstract class Operation {
 			return;
 		}
 
-		Operation.list(); // updating table data
+		list(); // updating table data
+	}
+
+	/**
+	 * Performs the show document operation
+	 *
+	 * @param document the document to show
+	 */
+	public static void showDocument(Document document) {
+		if (document == null) {
+			Client.frame.showErrorDialog("Select a document");
+			return;
+		}
+
+		// create show document request
+		JSONObject request = new JSONObject();
+		request.put(Fields.OP, Fields.OP_SHOW_DOC)
+				.put(Fields.DOC_NAME, document.getName())
+				.put(Fields.DOC_CREATOR, document.getCreator());
+
+		JSONObject reply = connection.requestReply(request);
+
+		if (isErrorMessage(reply)) {
+			Client.frame.showErrorDialog((String) reply.get(Fields.ERR_MSG));
+			return;
+		}
+
+		Client.frame.createShowWindow((String) reply.get(Fields.DOC_CONTENT));
+	}
+
+	/**
+	 * Performs the show section operation
+	 *
+	 * @param document the document
+	 * @param section  the document section to show
+	 */
+	public static void showSection(Document document, int section) {
+		if (section < 0) {
+			Client.frame.showErrorDialog("Select a section");
+			return;
+		}
+
+		// create show section request
+		JSONObject request = new JSONObject();
+		request.put(Fields.OP, Fields.OP_SHOW_SEC)
+				.put(Fields.DOC_NAME, document.getName())
+				.put(Fields.DOC_CREATOR, document.getCreator())
+				.put(Fields.DOC_SECTION, section);
+
+		JSONObject reply = connection.requestReply(request);
+
+		if (isErrorMessage(reply)) {
+			Client.frame.showErrorDialog((String) reply.get(Fields.ERR_MSG));
+			return;
+		}
+
+		Client.frame.createShowWindow((String) reply.get(Fields.SEC_CONTENT));
 	}
 
 	/**
@@ -136,10 +192,10 @@ public abstract class Operation {
 
 		// create edit section request
 		JSONObject request = new JSONObject();
-		request.put(Fields.OPERATION, Fields.OPERATION_EDIT_SECTION)
-				.put(Fields.DOCUMENT_NAME, document.getName())
-				.put(Fields.DOCUMENT_CREATOR, document.getCreator())
-				.put(Fields.DOCUMENT_SECTION, section);
+		request.put(Fields.OP, Fields.OP_EDIT_SEC)
+				.put(Fields.DOC_NAME, document.getName())
+				.put(Fields.DOC_CREATOR, document.getCreator())
+				.put(Fields.DOC_SECTION, section);
 
 		JSONObject reply = connection.requestReply(request);
 
@@ -150,11 +206,11 @@ public abstract class Operation {
 
 		InetAddress chatAddress = null;
 		try {
-			chatAddress = InetAddress.getByName((String) reply.get(Fields.CHAT_ADDRESS));
+			chatAddress = InetAddress.getByName((String) reply.get(Fields.CHAT_ADDR));
 		} catch (UnknownHostException e) {
 			Client.frame.showErrorDialog("Chat unavailable");
 		}
-		Client.frame.createEditingWindow((String) reply.get(Fields.SECTION_CONTENT), chatAddress);
+		Client.frame.createEditingWindow((String) reply.get(Fields.SEC_CONTENT), chatAddress);
 	}
 
 	/**
@@ -165,8 +221,8 @@ public abstract class Operation {
 	public static void endEdit(String sectionContent) {
 		// create end edit request
 		JSONObject request = new JSONObject();
-		request.put(Fields.OPERATION, Fields.OPERATION_END_EDIT)
-				.put(Fields.SECTION_CONTENT, sectionContent);
+		request.put(Fields.OP, Fields.OP_END_EDIT)
+				.put(Fields.SEC_CONTENT, sectionContent);
 
 		JSONObject reply = connection.requestReply(request);
 
@@ -176,7 +232,6 @@ public abstract class Operation {
 		}
 
 		Client.frame.createWorkspace();
-		Operation.list();
 	}
 
 	/**
@@ -188,17 +243,20 @@ public abstract class Operation {
 	public static void invite(String username, Document document) {
 		// create invite request
 		JSONObject request = new JSONObject();
-		request.put(Fields.OPERATION, Fields.OPERATION_INVITE)
+		request.put(Fields.OP, Fields.OP_INVITE)
 				.put(Fields.USERNAME, username)
-				.put(Fields.DOCUMENT_NAME, document.getName())
-				.put(Fields.DOCUMENT_CREATOR, document.getCreator());
+				.put(Fields.DOC_NAME, document.getName())
+				.put(Fields.DOC_CREATOR, document.getCreator());
 
 		JSONObject reply = connection.requestReply(request);
 
 		if (isErrorMessage(reply))
 			Client.frame.showErrorDialog((String) reply.get(Fields.ERR_MSG));
-		else
-			Client.frame.showInfoDialog(username + " invited"); // TODO: set "shared" to "yes"
+		else {
+			Client.frame.showInfoDialog(username + " invited");
+			document.setShared(true);
+			Client.frame.updateDocumentsTable();
+		}
 	}
 
 	/**
@@ -207,7 +265,7 @@ public abstract class Operation {
 	public static void list() {
 		// create list request
 		JSONObject request = new JSONObject();
-		request.put(Fields.OPERATION, Fields.OPERATION_LIST);
+		request.put(Fields.OP, Fields.OP_LIST);
 
 		JSONObject reply = connection.requestReply(request);
 
@@ -216,15 +274,15 @@ public abstract class Operation {
 			return;
 		}
 
-		Client.frame.clearTables();
+		Client.frame.clearWorkspace();
 
 		// downloading documents metadata
-		JSONArray docArray = reply.getJSONArray(Fields.DOCUMENTS);
+		JSONArray docArray = reply.getJSONArray(Fields.DOCS);
 		for (int i = 0; i < docArray.length(); i++) {
 			Client.frame.addDocument(new Document(
-					(String)  docArray.optJSONObject(i).get(Fields.DOCUMENT_NAME),
-					(String)  docArray.optJSONObject(i).get(Fields.DOCUMENT_CREATOR),
-					(Integer) docArray.optJSONObject(i).get(Fields.NUMBER_OF_SECTIONS),
+					(String)  docArray.optJSONObject(i).get(Fields.DOC_NAME),
+					(String)  docArray.optJSONObject(i).get(Fields.DOC_CREATOR),
+					(Integer) docArray.optJSONObject(i).get(Fields.SECTIONS),
 					(Boolean) docArray.optJSONObject(i).get(Fields.IS_SHARED)));
 		}
 	}
@@ -241,7 +299,7 @@ public abstract class Operation {
 
 		// create and edit request
 		JSONObject request = new JSONObject();
-		request.put(Fields.OPERATION, Fields.OPERATION_CHAT_MSG)
+		request.put(Fields.OP, Fields.OP_CHAT_MSG)
 				.put(Fields.CHAT_MSG, message);
 
 		textField.setText("");

@@ -20,9 +20,9 @@ public class ClientNotificationManager implements ClientNotificationManagerAPI {
 	 */
 	public void sendNotification(String notification) throws RemoteException {
 		JSONObject document = new JSONObject(notification);
-		String  name     = (String)  document.get(Fields.DOCUMENT_NAME);
-		String  creator  = (String)  document.get(Fields.DOCUMENT_CREATOR);
-		int     sections = (Integer) document.get(Fields.NUMBER_OF_SECTIONS);
+		String  name     = (String)  document.get(Fields.DOC_NAME);
+		String  creator  = (String)  document.get(Fields.DOC_CREATOR);
+		int     sections = (Integer) document.get(Fields.SECTIONS);
 		boolean shared   = (Boolean) document.get(Fields.IS_SHARED);
 		Client.frame.addDocument(new Document(name, creator, sections, shared));
 		Client.frame.showInfoDialog(creator + " invited you to edit " + name);

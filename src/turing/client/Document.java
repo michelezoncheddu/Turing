@@ -59,4 +59,13 @@ public class Document {
 	public boolean isShared() {
 		return shared;
 	}
+
+	/**
+	 * Sets the shared status
+	 *
+	 * @param shared the new status
+	 */
+	public void setShared(boolean shared) {
+		this.shared = shared;
+	}
 }

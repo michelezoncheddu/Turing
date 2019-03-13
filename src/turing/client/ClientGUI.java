@@ -20,7 +20,7 @@ public class ClientGUI extends JFrame {
 	private Connection connection; // connection with the server
 	private ChatListener chatListener = null;
 
-	private ArrayList<Document> documents;
+	private ArrayList<Document> documents = new ArrayList<>();
 	private DefaultTableModel documentsTableModel, sectionsTableModel;
 	private Document lastSelectedDocument = null;
 	private int lastSelectedSection = -1;
@@ -42,7 +42,6 @@ public class ClientGUI extends JFrame {
 		}
 
 		Operation.setConnection(connection);
-		documents = new ArrayList<>();
 
 		int width = (int) (screenSize.width * 0.3);
 		int height = (int) (screenSize.height * 0.25);
@@ -135,8 +134,8 @@ public class ClientGUI extends JFrame {
 		JButton inviteButton = new JButton("Invite");
 		JButton refreshButton = new JButton("Refresh");
 		createDocumentButton.addActionListener(event -> createDocumentWindow());
-		//showDocumentButton.addActionListener(event -> showDocument());
-		//showSectionButton.addActionListener(event -> showSection());
+		showDocumentButton.addActionListener(event -> Operation.showDocument(lastSelectedDocument));
+		showSectionButton.addActionListener(event -> Operation.showSection(lastSelectedDocument, lastSelectedSection));
 		editSectionButton.addActionListener(event -> Operation.editSection(lastSelectedDocument, lastSelectedSection));
 		inviteButton.addActionListener(event -> inviteWindow());
 		refreshButton.addActionListener(event -> Operation.list());
@@ -181,11 +180,16 @@ public class ClientGUI extends JFrame {
 		// workspace
 		add(buttonsPanel, BorderLayout.WEST);
 		add(centerPanel, BorderLayout.CENTER);
+
+		updateDocumentsTable();
 		setVisible(true);
 	}
 
 	/**
 	 * Creates the document editing window
+	 *
+	 * @param documentText the document content
+	 * @param chatAddress  the chat IP address
 	 */
 	public void createEditingWindow(String documentText, InetAddress chatAddress) {
 		setTitle("Turing - editing " + lastSelectedDocument.getName() + ", section " + (lastSelectedSection + 1));
@@ -234,6 +238,44 @@ public class ClientGUI extends JFrame {
 		add(buttonsPanel, BorderLayout.WEST);
 		add(editingPanel, BorderLayout.CENTER);
 		add(chatPanel, BorderLayout.EAST);
+		setVisible(true);
+	}
+
+	/**
+	 * Creates the document/section showing window
+	 *
+	 * @param documentText the document content
+	 */
+	public void createShowWindow(String documentText) {
+		if (lastSelectedSection < 0)
+			setTitle("Turing - showing " + lastSelectedDocument.getName());
+		else
+			setTitle("Turing - showing " + lastSelectedDocument.getName() + ", section " + (lastSelectedSection + 1));
+		setVisible(false);
+		getContentPane().removeAll();
+		setLayout(new BorderLayout());
+		JTextArea editingArea = new JTextArea(documentText);
+
+		// panels
+		JPanel buttonsPanel = new JPanel();
+		JPanel showingPanel = new JPanel();
+		buttonsPanel.setLayout(new BoxLayout(buttonsPanel, BoxLayout.Y_AXIS));
+		showingPanel.setLayout(new BorderLayout());
+
+		// buttonsPanel
+		JButton backButton = new JButton("Back");
+		backButton.addActionListener(event -> createWorkspace());
+		buttonsPanel.add(backButton);
+
+		// showingPanel
+		editingArea.setWrapStyleWord(true);
+		editingArea.setEditable(false);
+		JScrollPane editingScroll = new JScrollPane (
+				editingArea, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		showingPanel.add(editingScroll, BorderLayout.CENTER);
+
+		add(buttonsPanel, BorderLayout.WEST);
+		add(showingPanel, BorderLayout.CENTER);
 		setVisible(true);
 	}
 
@@ -306,32 +348,8 @@ public class ClientGUI extends JFrame {
 			return;
 		}
 
-		Operation.invite(username, lastSelectedDocument); // inviting user
-	}
-
-	/**
-	 * Adds a document in the documents table and in the documents list
-	 */
-	public void addDocument(Document document) {
-		if (documentsTableModel == null)
-			return;
-
-		Object[] tableData = {document.getName(), document.getCreator(), "n.d.", document.isShared()}; // TODO: unused fields
-		documentsTableModel.addRow(tableData);
-		documents.add(document);
-	}
-
-	/**
-	 * Updates the sections table with the selected document sections
-	 */
-	private void updateSectionsTable(int documentIndex) {
-		sectionsTableModel.setRowCount(0);
-		lastSelectedDocument = documents.get(documentIndex);
-		lastSelectedSection = -1;
-		for (int i = 0; i < documents.get(documentIndex).getSections(); i++) {
-			Object[] data = {documents.get(documentIndex).getName() + " - section " + (i + 1), "n.d."}; // TODO: unused field
-			sectionsTableModel.addRow(data);
-		}
+		// inviting user
+		Operation.invite(username, lastSelectedDocument);
 	}
 
 	/**
@@ -349,13 +367,67 @@ public class ClientGUI extends JFrame {
 	}
 
 	/**
+	 * Adds a document in the documents table and in the documents list
+	 *
+	 * @param document the document to add
+	 */
+	public void addDocument(Document document) {
+		if (documentsTableModel == null)
+			return;
+
+		addDocumentToTable(document);
+		documents.add(document);
+	}
+
+	/**
+	 * Adds a document to the documents table
+	 *
+	 * @param document the document to add
+	 */
+	private void addDocumentToTable(Document document) {
+		Object[] tableData = {document.getName(), document.getCreator(), "n.d.", document.isShared()}; // TODO: unused fields
+		documentsTableModel.addRow(tableData);
+	}
+
+	/**
+	 * Updates the table with the new documents
+	 */
+	public void updateDocumentsTable() {
+		clearTables();
+		for (Document document : documents)
+			addDocumentToTable(document);
+	}
+
+	/**
+	 * Updates the sections table with the selected document sections
+	 *
+	 * @param documentIndex the document table index
+	 */
+	private void updateSectionsTable(int documentIndex) {
+		sectionsTableModel.setRowCount(0);
+		lastSelectedDocument = documents.get(documentIndex);
+		lastSelectedSection = -1;
+		for (int i = 0; i < documents.get(documentIndex).getSections(); i++) {
+			Object[] data = {documents.get(documentIndex).getName() + " - section " + (i + 1), "n.d."}; // TODO: unused field
+			sectionsTableModel.addRow(data);
+		}
+	}
+
+	/**
+	 * Clears the workspace tables and the document list
+	 */
+	public void clearWorkspace() {
+		clearTables();
+		documents.clear();
+	}
+
+	/**
 	 * Clears the tables and the documents list
 	 */
-	public void clearTables() {
+	private void clearTables() {
 		documentsTableModel.setRowCount(0);
 		sectionsTableModel.setRowCount(0);
 		lastSelectedDocument = null;
-		documents.clear();
 		lastSelectedSection = -1;
 	}
 }
