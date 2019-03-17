@@ -11,9 +11,3 @@
 .idea/
 out/
 docs/
-
-*.log
-*.aux
-*.toc
-*.pdf
-*.synctex.gz
