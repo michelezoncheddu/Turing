@@ -26,6 +26,7 @@ public class ClientGUI extends JFrame {
 	private int lastSelectedSection = -1;
 
 	String username = null;
+	ImageIcon sharedIcon;
 
 	/**
 	 * Creates the Graphical User Interface
@@ -42,6 +43,10 @@ public class ClientGUI extends JFrame {
 		}
 
 		Operation.setConnection(connection);
+
+		// load shared icon
+		sharedIcon = new ImageIcon("icons/shared_icon.png");
+		sharedIcon = new ImageIcon(sharedIcon.getImage().getScaledInstance(16, 16, java.awt.Image.SCALE_SMOOTH));
 
 		int width = (int) (screenSize.width * 0.3);
 		int height = (int) (screenSize.height * 0.25);
@@ -160,11 +165,16 @@ public class ClientGUI extends JFrame {
 		sectionsPanel.add(new JScrollPane(sectionsTable));
 
 		// documentsPanel
-		String[] documentsTableColumns = new String[] {"Name", "Creator", "Active users", "Shared"};
+		String[] documentsTableColumns = new String[] {"Name", "Creator", "Shared"};
 		documentsTableModel = new DefaultTableModel(documentsTableColumns, 0);
-		JTable documentsTable = new JTable(documentsTableModel);
+		JTable documentsTable = new JTable(documentsTableModel) {
+			// returning the Class of each column will allow different renderers to be used based on Class
+			public Class getColumnClass(int column) {
+				return getValueAt(0, column).getClass();
+			}
+		};
 		documentsTable.setDefaultEditor(Object.class, null); // set table not editalbe
-		documentsTable.getTableHeader().setReorderingAllowed(false); // block column ordering
+		documentsTable.getTableHeader().setReorderingAllowed(false); // lock column ordering
 		documentsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION); // force to select only one row
 		documentsTable.getSelectionModel().addListSelectionListener(event -> {
 			if (event.getValueIsAdjusting())
@@ -385,7 +395,7 @@ public class ClientGUI extends JFrame {
 	 * @param document the document to add
 	 */
 	private void addDocumentToTable(Document document) {
-		Object[] tableData = {document.getName(), document.getCreator(), "n.d.", document.isShared()}; // TODO: unused fields
+		Object[] tableData = {document.getName(), document.getCreator(), document.isShared() ? sharedIcon : "no"};
 		documentsTableModel.addRow(tableData);
 	}
 

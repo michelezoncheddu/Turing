@@ -154,55 +154,22 @@ public class ClientHandler implements Runnable {
 	 */
 	private void handleOperation(JSONObject request) {
 		String operation = (String) request.get(Fields.OP);
-		if (!operation.equals(Fields.OP_LOGIN)) {
-			if (currentUser == null || !currentUser.isOnline()) {
-				sendError("You must be logged to request this operation");
-				return;
-			}
+		if (!operation.equals(Fields.OP_LOGIN) && (currentUser == null || !currentUser.isOnline())) {
+			sendError("You must be logged to request this operation");
+			return;
 		}
 		switch (operation) {
-		case Fields.OP_LOGIN:
-			login(request);
-			break;
-
-		case Fields.OP_LOGOUT:
-			logout();
-			break;
-
-		case Fields.OP_CREATE_DOC:
-			createDocument(request);
-			break;
-
-		case Fields.OP_SHOW_DOC:
-			showDocument(request);
-			break;
-
-		case Fields.OP_SHOW_SEC:
-			showSection(request);
-			break;
-
-		case Fields.OP_EDIT_SEC:
-			editSection(request);
-			break;
-
-		case Fields.OP_END_EDIT:
-			endEdit(request);
-			break;
-
-		case Fields.OP_INVITE:
-			invite(request);
-			break;
-
-		case Fields.OP_LIST:
-			list();
-			break;
-
-		case Fields.OP_CHAT_MSG:
-			chatMessage(request);
-			break;
-
-		default:
-			sendError("Unknown opeation: " + operation);
+			case Fields.OP_LOGIN:      login(request); break;
+			case Fields.OP_LOGOUT:     logout(); break;
+			case Fields.OP_CREATE_DOC: createDocument(request); break;
+			case Fields.OP_SHOW_DOC:   showDocument(request); break;
+			case Fields.OP_SHOW_SEC:   showSection(request); break;
+			case Fields.OP_EDIT_SEC:   editSection(request); break;
+			case Fields.OP_END_EDIT:   endEdit(request); break;
+			case Fields.OP_INVITE:     invite(request); break;
+			case Fields.OP_LIST:       list(); break;
+			case Fields.OP_CHAT_MSG:   chatMessage(request); break;
+			default: sendError("Unknown opeation: " + operation);
 		}
 	}
 
