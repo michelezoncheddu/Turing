@@ -23,7 +23,7 @@ public class ServerNotificationManager implements ServerNotificationManagerAPI {
 	public void registerForNotifications(String username, String password, ClientNotificationManagerAPI notifier)
 			throws NullPointerException, RemoteException {
 		if (username == null || password == null || notifier == null)
-			throw new NullPointerException();
+			throw new NullPointerException("Username, password and notifier must not be null");
 
 		User user = Server.userManager.get(username);
 

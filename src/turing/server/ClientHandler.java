@@ -5,9 +5,7 @@ import org.json.JSONException;
 import turing.Fields;
 
 import org.json.JSONObject;
-import turing.server.exceptions.InexistentDocumentException;
-import turing.server.exceptions.PreExistentDocumentException;
-import turing.server.exceptions.UserNotAllowedException;
+import turing.server.exceptions.*;
 
 import java.io.*;
 import java.net.*;
@@ -158,6 +156,7 @@ public class ClientHandler implements Runnable {
 			sendError("You must be logged to request this operation");
 			return;
 		}
+		out.println("Handling " + operation + " from " + (currentUser == null ? "unknown user" : currentUser.getUsername()));
 		switch (operation) {
 			case Fields.OP_LOGIN:      login(request); break;
 			case Fields.OP_LOGOUT:     logout(); break;
@@ -169,7 +168,7 @@ public class ClientHandler implements Runnable {
 			case Fields.OP_INVITE:     invite(request); break;
 			case Fields.OP_LIST:       list(); break;
 			case Fields.OP_CHAT_MSG:   chatMessage(request); break;
-			default: sendError("Unknown opeation: " + operation);
+			default: sendError("Unknown operation: " + operation);
 		}
 	}
 
@@ -232,23 +231,36 @@ public class ClientHandler implements Runnable {
 		String password = (String) request.get(Fields.PASSWORD);
 
 		// try to log user
-		if ((currentUser = Server.userManager.logIn(username, password)) != null) {
-			sendAck();
-			out.println(currentUser.getUsername() + " connected");
-		} else {
-			sendError("Can't connect " + username); // TODO: specify error
-			out.println("Can't connect " + username);
+		try {
+			currentUser = Server.userManager.logIn(username, password);
+		} catch (InexistentUserException | AlreadyLoggedException e) {
+			sendError(e.getMessage());
+			return;
 		}
+		if (currentUser == null) { // wrong passord
+			sendError("Wrong password for " + username);
+			out.println("Wrong password for " + username);
+			return;
+		}
+		sendAck();
+		out.println(currentUser.getUsername() + " connected");
 	}
 
 	/**
 	 * Implements the logout operation
 	 */
 	private void logout() {
-		if (currentUser == null)
+		if (currentUser == null) {
+			sendError("User already logged out");
 			return;
+		}
 
-		currentUser.setOnline(false);
+		try {
+			currentUser.setOnline(false);
+		} catch (AlreadyLoggedException e) {
+			out.println("The impossible happened!"); // because this is the only call to log out the user
+			return;
+		}
 
 		// release possible locks
 		Section currentSection = currentUser.getEditingSection();
@@ -278,13 +290,11 @@ public class ClientHandler implements Runnable {
 		Document newDoc;
 		try {
 			newDoc = new Document(docName, currentUser, sections);
-		} catch (PreExistentDocumentException e) {
-			sendError("Document already created");
-			return;
-		} catch (IOException e) { // disk error
+		} catch (PreExistentDocumentException | IOException e) {
 			sendError(e.getMessage());
 			return;
 		}
+
 		currentUser.addDocument(newDoc);
 		DocumentManager.put(newDoc);
 		sendAck();
@@ -301,8 +311,10 @@ public class ClientHandler implements Runnable {
 		String creator    = (String)  request.get(Fields.DOC_CREATOR);
 
 		Document document = getDocument(docName, creator);
-		if (document == null)
+		if (document == null) {
+			sendError("Inexistent document: " + docName);
 			return;
+		}
 
 		Section section;
 		int sectionNumber = 0;
@@ -335,8 +347,10 @@ public class ClientHandler implements Runnable {
 		int sectionNumber = (Integer) request.get(Fields.DOC_SECTION);
 
 		Document document = getDocument(docName, creator);
-		if (document == null)
+		if (document == null) {
+			sendError("Inexistent document: " + docName);
 			return;
+		}
 
 		Section section = document.getSection(sectionNumber);
 		if (section == null) {
@@ -375,8 +389,10 @@ public class ClientHandler implements Runnable {
 		int sectionNumber = (Integer) request.get(Fields.DOC_SECTION);
 
 		Document document = getDocument(docName, creator);
-		if (document == null)
+		if (document == null) {
+			sendError("Inexistent document: " + docName);
 			return;
+		}
 
 		Section section = document.getSection(sectionNumber);
 		if (section == null) {
@@ -402,7 +418,7 @@ public class ClientHandler implements Runnable {
 					.put(Fields.CHAT_ADDR, document.getChatAddress().getHostAddress());
 			sendMessage(reply);
 		} else {
-			sendError("Another user is editing this section");
+			sendError(section.getEditingUser().getUsername() + " is editing this section");
 		}
 	}
 
@@ -449,12 +465,12 @@ public class ClientHandler implements Runnable {
 		try {
 			document = DocumentManager.getAsCreator(currentUser, DocumentManager.makeKey(creator, docName));
 		} catch (UserNotAllowedException e) {
-			sendError("You cannot share other users' documents");
+			sendError(e.getMessage());
 			System.err.println(currentUser + " not allowed to share " + docName);
 			return;
 		} catch (InexistentDocumentException e) {
-			sendError("Inexistent document: " + docName);
-			System.err.println(docName + " inexistent");
+			sendError(e.getMessage());
+			System.err.println("Inexistent document: " + docName);
 			return;
 		}
 
@@ -570,12 +586,12 @@ public class ClientHandler implements Runnable {
 		try {
 			document = DocumentManager.getAsGuest(currentUser, DocumentManager.makeKey(creator, docName));
 		} catch (UserNotAllowedException e) {
-			sendError("Permission denied for: " + docName);
+			sendError(e.getMessage());
 			System.err.println(currentUser + " not allowed to get " + docName);
 			return null;
 		} catch (InexistentDocumentException e) {
-			sendError("Inexistent document: " + docName);
-			System.err.println(docName + " inexistent");
+			sendError(e.getMessage());
+			System.err.println("Inexistent document: " + docName);
 			return null;
 		}
 		return document;

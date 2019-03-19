@@ -70,7 +70,7 @@ public class Connection {
 			ClientNotificationManager listener = new ClientNotificationManager();
 			ClientNotificationManagerAPI stub = (ClientNotificationManagerAPI) UnicastRemoteObject.exportObject(listener, 0);
 			serverAPI.registerForNotifications(username, password, stub);
-		} catch (RemoteException | NotBoundException e) {
+		} catch (NullPointerException | RemoteException | NotBoundException e) {
 			Client.frame.showErrorDialog(e.getMessage());
 		}
 	}

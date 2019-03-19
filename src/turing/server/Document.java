@@ -38,16 +38,19 @@ public class Document {
 	 * @throws PreExistentDocumentException if the document already exists
 	 */
 	public Document(String name, User creator, int sections) throws IOException, PreExistentDocumentException {
+		if (sections < 1 || sections > Server.MAX_SECTIONS)
+			throw new IOException("Invalid number of sections");
+
 		this.name = name;
 		this.creator = creator;
-		this.sections = new Section[sections]; // TODO: sections may be too little or too big
+		this.sections = new Section[sections];
 
 		// creating directory
 		String creatorUsername = creator.getUsername();
 		String dirPath = Server.DOCS_ROOT + File.separator + creatorUsername + File.separator + name;
 		File file = new File(dirPath);
 		if (file.exists())
-			throw new PreExistentDocumentException(dirPath);
+			throw new PreExistentDocumentException(dirPath + " already created");
 		if (!file.mkdirs())
 			throw new IOException("mkdirs " + dirPath + " failed");
 

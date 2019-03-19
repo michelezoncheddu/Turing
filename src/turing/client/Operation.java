@@ -60,7 +60,9 @@ public abstract class Operation {
 			if (success)
 				Client.frame.showInfoDialog(username + " registered");
 			else
-				Client.frame.showErrorDialog("Can't register " + username); // TODO: specify error and exceptions
+				Client.frame.showErrorDialog("Username already in use: " + username);
+		} catch (NullPointerException | IllegalArgumentException e) {
+			Client.frame.showErrorDialog(e.getMessage());
 		} catch (RemoteException e) {
 			Client.frame.showErrorDialog("Communication error");
 		} catch (NotBoundException e) {

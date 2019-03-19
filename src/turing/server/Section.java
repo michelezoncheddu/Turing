@@ -28,7 +28,18 @@ public class Section {
 	 *
 	 * @return the parent document
 	 */
-	public Document getParent() { return parent; }
+	public Document getParent() {
+		return parent;
+	}
+
+	/**
+	 * Returns the editing user
+	 *
+	 * @return the editing user
+	 */
+	public User getEditingUser() {
+		return editingUser;
+	}
 
 	/**
 	 * Locks the section for the editing

@@ -41,7 +41,7 @@ public abstract class DocumentManager {
 		if (document.isEditableBy(user))
 			return document;
 		else
-			throw new UserNotAllowedException(user.getUsername());
+			throw new UserNotAllowedException("Permission denied");
 	}
 
 	/**
@@ -52,7 +52,7 @@ public abstract class DocumentManager {
 	 *
 	 * @return the document searched for
 	 *
-	 * @throws UserNotAllowedException     if the user is not allowed to get the document
+	 * @throws UserNotAllowedException     if the user is not the document creator
 	 * @throws InexistentDocumentException if the document doesn't exist
 	 */
 	public static Document getAsCreator(User user, String docKey)
@@ -63,7 +63,7 @@ public abstract class DocumentManager {
 		if (user == document.getCreator())
 			return document;
 		else
-			throw new UserNotAllowedException(user.getUsername());
+			throw new UserNotAllowedException("You cannot share other users' documents");
 	}
 
 	/**
@@ -75,11 +75,10 @@ public abstract class DocumentManager {
 	 *
 	 * @throws InexistentDocumentException if the document doesn't exist
 	 */
-	private static Document get(String docKey)
-			throws InexistentDocumentException {
+	private static Document get(String docKey) throws InexistentDocumentException {
 		Document document = documents.get(docKey);
 		if (document == null)
-			throw new InexistentDocumentException(docKey);
+			throw new InexistentDocumentException("Inexistent document");
 		return document;
 	}
 

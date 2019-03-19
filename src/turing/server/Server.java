@@ -20,9 +20,11 @@ import static java.lang.System.out;
  * Implements the turing server
  */
 public class Server implements Runnable {
-	static final String DOCS_ROOT = "docs"; // documents folder
-	static final int    CHAT_PORT = 1101;   // multicast port
-	static final int    MTU       = 1500;   // Ethernet MTU
+	static final String DOCS_ROOT    = "docs"; // documents folder
+	static final int    CHAT_PORT    = 1101;   // multicast port
+	static final int    MTU          = 1500;   // Ethernet MTU
+
+	static final int    MAX_SECTIONS = 1024;   // max number of sections for a document
 
 	// global managers
 	static UserManager               userManager;
@@ -37,7 +39,13 @@ public class Server implements Runnable {
 		boolean stop = false; // TODO: stop function
 		userManager         = new UserManager();
 		notificationManager = new ServerNotificationManager();
-		exportObjects(userManager, notificationManager);
+
+		try {
+			exportObjects(userManager, notificationManager);
+		} catch (RemoteException | AlreadyBoundException e) {
+			e.printStackTrace();
+			return; // terminate server
+		}
 
 		System.setProperty("java.net.preferIPv4Stack", "true");
 
@@ -67,7 +75,6 @@ public class Server implements Runnable {
 			}
 			threadPool.execute(new ClientHandler(clientConnection));
 		}
-		out.println("Server stopped");
 
 		// closing socket
 		try {
@@ -77,12 +84,14 @@ public class Server implements Runnable {
 		}
 
 		// await thread pool termination
+		out.println("Waiting threads termination...");
 		threadPool.shutdown();
 		try {
 			threadPool.awaitTermination(3, TimeUnit.SECONDS);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+		out.println("Server stopped");
 	}
 
 	/**
@@ -91,26 +100,23 @@ public class Server implements Runnable {
 	 * @param userManager         the user manager to export
 	 * @param notificationManager the notification manager to export
 	 */
-	private void exportObjects(UserManagerAPI userManager, ServerNotificationManagerAPI notificationManager) {
+	private void exportObjects(UserManagerAPI userManager, ServerNotificationManagerAPI notificationManager)
+			throws RemoteException, AlreadyBoundException {
 		int    RMI_PORT            = 1099;
 		String REGISTRATION_OBJECT = "reg";
 		String NOTIFICATION_OBJECT = "not";
 
-		try {
-			// exporting objects
-			UserManagerAPI userManagerStub =
-					(UserManagerAPI) UnicastRemoteObject.exportObject(userManager, 0);
-			ServerNotificationManagerAPI notificationStub =
-					(ServerNotificationManagerAPI) UnicastRemoteObject.exportObject(notificationManager, 0);
+		// exporting objects
+		UserManagerAPI userManagerStub =
+				(UserManagerAPI) UnicastRemoteObject.exportObject(userManager, 0);
+		ServerNotificationManagerAPI notificationStub =
+				(ServerNotificationManagerAPI) UnicastRemoteObject.exportObject(notificationManager, 0);
 
-			Registry registry = LocateRegistry.createRegistry(RMI_PORT);
+		Registry registry = LocateRegistry.createRegistry(RMI_PORT);
 
-			// publishing the stubs into the registry
-			registry.bind(REGISTRATION_OBJECT, userManagerStub);
-			registry.bind(NOTIFICATION_OBJECT, notificationStub);
-		} catch (RemoteException | AlreadyBoundException e) {
-			e.printStackTrace(); // TODO?
-		}
+		// publishing the stubs into the registry
+		registry.bind(REGISTRATION_OBJECT, userManagerStub);
+		registry.bind(NOTIFICATION_OBJECT, notificationStub);
 	}
 
 	/**

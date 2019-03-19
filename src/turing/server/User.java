@@ -1,6 +1,7 @@
 package turing.server;
 
 import turing.ClientNotificationManagerAPI;
+import turing.server.exceptions.AlreadyLoggedException;
 
 import java.rmi.RemoteException;
 import java.util.LinkedList;
@@ -84,14 +85,13 @@ public class User {
 	 *
 	 * @param newStatus the new online status
 	 *
-	 * @return true if has been possibile to change the status
-	 *         false otherwise
+	 * @throws AlreadyLoggedException if the user was already logged
 	 */
-	public synchronized boolean setOnline(boolean newStatus) {
-		if (onlineStatus == newStatus)
-			return false;
+	public synchronized void setOnline(boolean newStatus) throws AlreadyLoggedException {
+		if (onlineStatus && newStatus)
+			throw new AlreadyLoggedException(username + " already online");
+
 		onlineStatus = newStatus;
-		return true;
 	}
 
 	/**

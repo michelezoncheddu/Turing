@@ -152,7 +152,7 @@ public class ClientGUI extends JFrame {
 		buttonsPanel.add(refreshButton);
 
 		// sectionsPanel
-		String[] sectionsTableColumns = new String[] {"N°", "Field 2", "Field 3"};
+		String[] sectionsTableColumns = new String[] {"Section"};
 		sectionsTableModel = new DefaultTableModel(sectionsTableColumns, 0);
 		JTable sectionsTable = new JTable(sectionsTableModel);
 		sectionsTable.setDefaultEditor(Object.class, null); // set table not editalbe
@@ -303,7 +303,7 @@ public class ClientGUI extends JFrame {
 		numberFormatter.setValueClass(Integer.class);
 		numberFormatter.setAllowsInvalid(false);
 		numberFormatter.setMinimum(1);
-		numberFormatter.setMaximum(1000);
+		numberFormatter.setMaximum(100);
 		JFormattedTextField sectionsField = new JFormattedTextField(numberFormatter);
 		sectionsField.setColumns(10);
 
@@ -418,7 +418,7 @@ public class ClientGUI extends JFrame {
 		lastSelectedDocument = documents.get(documentIndex);
 		lastSelectedSection = -1;
 		for (int i = 0; i < documents.get(documentIndex).getSections(); i++) {
-			Object[] data = {documents.get(documentIndex).getName() + " - section " + (i + 1), "n.d."}; // TODO: unused field
+			Object[] data = {documents.get(documentIndex).getName() + " - section " + (i + 1)};
 			sectionsTableModel.addRow(data);
 		}
 	}

@@ -1,6 +1,8 @@
 package turing.server;
 
 import turing.UserManagerAPI;
+import turing.server.exceptions.AlreadyLoggedException;
+import turing.server.exceptions.InexistentUserException;
 
 import java.io.File;
 import java.rmi.*;
@@ -23,15 +25,17 @@ public class UserManager extends RemoteServer implements UserManagerAPI {
 	 * @return true if has been possibile to register the user (username not registered yet)
 	 *         false otherwise
 	 *
-	 * @throws NullPointerException if username is null or password is null
-	 * @throws RemoteException      if a RMI communication error occurs
+	 * @throws NullPointerException     if username is null or password is null
+	 * @throws IllegalArgumentException if username contains the file separator character
+	 * @throws RemoteException          if a RMI communication error occurs
 	 */
-	public boolean signUp(String username, String password) throws NullPointerException, RemoteException {
+	public boolean signUp(String username, String password)
+			throws NullPointerException, IllegalArgumentException, RemoteException {
 		if (username == null || password == null)
-			throw new NullPointerException();
+			throw new NullPointerException("Username and password must not be null");
 
 		if (username.contains(File.separator))
-			return false;
+			throw new IllegalArgumentException("The username can't contain this character: " + File.separator);
 
 		return users.putIfAbsent(username, new User(username, password)) == null;
 	}
@@ -42,19 +46,23 @@ public class UserManager extends RemoteServer implements UserManagerAPI {
 	 * @param username the user username
 	 * @param password the user password
 	 *
-	 * @return the user, if has been possible to log in (user registered and not already logged)
-	 *         null otherwise
+	 * @return the user, if has been possible to perform the log in
+	 *         null if the password was wrong
+	 *
+	 * @throws InexistentUserException if the user doesn't exist
+	 * @throws AlreadyLoggedException  if the user is already logged
 	 */
-	public User logIn(String username, String password) {
+	public User logIn(String username, String password) throws InexistentUserException, AlreadyLoggedException {
 		User user = users.get(username);
 		if (user == null) // inexistent user
-			return null;
+			throw new InexistentUserException("Inexistent user: " + username);
 
-		if (user.getPassword().equals(password))
-			if (user.setOnline(true)) // setOnline is thread safe
-				return user;
+		if (user.getPassword().equals(password)) {
+			user.setOnline(true); // setOnline is thread safe
+			return user;
+		}
 
-		return null; // wrong password or user already logged TODO: throw specific exception
+		return null; // wrong password
 	}
 
 	/**
