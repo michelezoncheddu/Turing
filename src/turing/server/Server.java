@@ -36,10 +36,10 @@ public class Server implements Runnable {
 	@Override
 	public void run() {
 		int DEFAULT_PORT = 1100;
-		boolean stop = false; // TODO: stop function
 		userManager         = new UserManager();
 		notificationManager = new ServerNotificationManager();
 
+		// exporting managers
 		try {
 			exportObjects(userManager, notificationManager);
 		} catch (RemoteException | AlreadyBoundException e) {
@@ -51,7 +51,6 @@ public class Server implements Runnable {
 
 		ServerSocket serverSocket;
 		Socket clientConnection;
-
 		try {
 			serverSocket = new ServerSocket(DEFAULT_PORT);
 		} catch (IOException e) {
@@ -62,25 +61,27 @@ public class Server implements Runnable {
 		// initialize the thread pool
 		ThreadPoolExecutor threadPool = (ThreadPoolExecutor) Executors.newCachedThreadPool();
 
+		// termination function
+		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+			try {
+				serverSocket.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}));
+
 		out.println("Server ready, waiting for connections...");
 
 		// waiting for connections loop
-		while (!stop) {
+		while (true) {
 			try {
 				clientConnection = serverSocket.accept();
 			} catch (IOException e) {
-				if (stop)
+				if (serverSocket.isClosed())
 					break;
 				throw new RuntimeException("Error accepting client connection", e);
 			}
 			threadPool.execute(new ClientHandler(clientConnection));
-		}
-
-		// closing socket
-		try {
-			serverSocket.close();
-		} catch (IOException e) {
-			e.printStackTrace();
 		}
 
 		// await thread pool termination
@@ -92,6 +93,7 @@ public class Server implements Runnable {
 			e.printStackTrace();
 		}
 		out.println("Server stopped");
+		out.flush();
 	}
 
 	/**

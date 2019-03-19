@@ -57,6 +57,9 @@ public class Connection {
 			Client.frame.showErrorDialog("Communication error");
 			return null;
 		}
+		if (replyString == null) // server disconnected
+			return null;
+
 		return new JSONObject(replyString);
 	}
 
