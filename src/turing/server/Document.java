@@ -35,11 +35,13 @@ public class Document {
 	 * @param sections the number of sections
 	 *
 	 * @throws IOException                  if a disk error occurs
+	 * @throws IllegalArgumentException     if sections is < 1 or > Server.MAX_SECTIONS
 	 * @throws PreExistentDocumentException if the document already exists
 	 */
-	public Document(String name, User creator, int sections) throws IOException, PreExistentDocumentException {
+	public Document(String name, User creator, int sections)
+			throws IOException, IllegalArgumentException, PreExistentDocumentException {
 		if (sections < 1 || sections > Server.MAX_SECTIONS)
-			throw new IOException("Invalid number of sections");
+			throw new IllegalArgumentException("Invalid number of sections");
 
 		this.name = name;
 		this.creator = creator;

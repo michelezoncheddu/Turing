@@ -290,7 +290,7 @@ public class ClientHandler implements Runnable {
 		Document newDoc;
 		try {
 			newDoc = new Document(docName, currentUser, sections);
-		} catch (PreExistentDocumentException | IOException e) {
+		} catch (IOException | IllegalArgumentException | PreExistentDocumentException e) {
 			sendError(e.getMessage());
 			return;
 		}
@@ -307,8 +307,8 @@ public class ClientHandler implements Runnable {
 	 */
 	private void showDocument(JSONObject request) {
 		// parsing request
-		String docName    = (String)  request.get(Fields.DOC_NAME);
-		String creator    = (String)  request.get(Fields.DOC_CREATOR);
+		String docName = (String) request.get(Fields.DOC_NAME);
+		String creator = (String) request.get(Fields.DOC_CREATOR);
 
 		Document document = getDocument(docName, creator);
 		if (document == null) {
