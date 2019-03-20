@@ -55,7 +55,6 @@ public class ClientHandler implements Runnable {
 				requestString = reader.readLine();
 			} catch (IOException e) { // communication error with the client
 				logout();
-				e.printStackTrace();
 				break;
 			}
 
@@ -506,11 +505,11 @@ public class ClientHandler implements Runnable {
 
 		// because RMI calls are not asynchronous
 		new Thread(() -> {
-				try {
-					user.sendNotification(notification.toString());
-				} catch (RemoteException e) {
-					e.printStackTrace();
-				}
+			try {
+				user.sendNotification(notification.toString());
+			} catch (RemoteException e) {
+				e.printStackTrace();
+			}
 		}).start();
 
 		sendAck();

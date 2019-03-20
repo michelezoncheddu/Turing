@@ -47,8 +47,6 @@ public class Server implements Runnable {
 			return; // terminate server
 		}
 
-		System.setProperty("java.net.preferIPv4Stack", "true");
-
 		ServerSocket serverSocket;
 		Socket clientConnection;
 		try {
@@ -93,7 +91,7 @@ public class Server implements Runnable {
 			e.printStackTrace();
 		}
 		out.println("Server stopped");
-		out.flush();
+		System.exit(0);
 	}
 
 	/**

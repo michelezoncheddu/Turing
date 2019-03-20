@@ -14,7 +14,7 @@ import javax.swing.text.NumberFormatter;
 /**
  * Implements the turing client Graphical User Interface
  */
-public class ClientGUI extends JFrame {
+public class ClientGUI extends JFrame { // TODO: logout button
 	private Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
 	private Connection connection; // connection with the server

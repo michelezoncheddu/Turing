@@ -4,6 +4,7 @@ import org.json.JSONObject;
 import turing.ClientNotificationManagerAPI;
 import turing.Fields;
 
+import javax.swing.*;
 import java.rmi.RemoteException;
 
 /**
@@ -25,6 +26,6 @@ public class ClientNotificationManager implements ClientNotificationManagerAPI {
 		int     sections = (Integer) document.get(Fields.SECTIONS);
 		boolean shared   = (Boolean) document.get(Fields.IS_SHARED);
 		Client.frame.addDocument(new Document(name, creator, sections, shared));
-		Client.frame.showInfoDialog(creator + " invited you to edit " + name);
+		SwingUtilities.invokeLater(() -> Client.frame.showInfoDialog(creator + " invited you to edit " + name));
 	}
 }

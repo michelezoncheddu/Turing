@@ -119,8 +119,7 @@ public class User {
 	 */
 	public void setNotifier(ClientNotificationManagerAPI notifier) {
 		synchronized (this) { // to change notifier safely
-			if (this.notifier == null)
-				this.notifier = notifier;
+			this.notifier = notifier;
 		}
 	}
 
@@ -150,8 +149,9 @@ public class User {
 			if (notifier == null)
 				return;
 
-			while (!pendingNotifications.isEmpty())
+			while (!pendingNotifications.isEmpty()) {
 				notifier.sendNotification(pendingNotifications.poll());
+			}
 		}
 	}
 }
