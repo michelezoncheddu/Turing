@@ -10,9 +10,9 @@ import java.nio.channels.DatagramChannel;
  * Thread for listening chat messages
  */
 public class ChatListener implements Runnable {
-	private InetAddress chatAddress;
-	private JTextArea chatArea;
-	private DatagramChannel channel;
+	private InetAddress chatAddress; // multicast chat address
+	private JTextArea chatArea;      // where messages will be written
+	private DatagramChannel channel; // where messages arrive
 
 	/**
 	 * Creates a new chat listener
@@ -25,8 +25,12 @@ public class ChatListener implements Runnable {
 		this.chatArea = chatArea;
 	}
 
+	/**
+	 * Connects and manages the chat
+	 */
 	@Override
 	public void run() {
+		// join the multicast chat group
 		try {
 			NetworkInterface networkInterface = NetworkInterface.getByInetAddress(InetAddress.getByName("localhost"));
 			channel = DatagramChannel.open();
@@ -39,6 +43,7 @@ public class ChatListener implements Runnable {
 			return;
 		}
 
+		// reads messages and updates the application
 		while (true) {
 			ByteBuffer byteBuffer = ByteBuffer.allocate(Client.MTU);
 			byteBuffer.clear();
@@ -48,8 +53,7 @@ public class ChatListener implements Runnable {
 				break;
 			}
 			byteBuffer.flip();
-			chatArea.append(new String(byteBuffer.array()).trim());
-			chatArea.append("\n");
+			SwingUtilities.invokeLater(() -> chatArea.append(new String(byteBuffer.array()).trim() + "\n"));
 		}
 	}
 

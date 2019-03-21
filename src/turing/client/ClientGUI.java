@@ -15,18 +15,21 @@ import javax.swing.text.NumberFormatter;
  * Implements the turing client Graphical User Interface
  */
 public class ClientGUI extends JFrame {
-	private Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+	private Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize(); // screen size
 
-	private Connection connection; // connection with the server
-	private ChatListener chatListener = null;
+	private Connection   connection = null;   // connection with the server
+	private ChatListener chatListener = null; // chat background thread
 
-	private ArrayList<Document> documents = new ArrayList<>();
-	private DefaultTableModel documentsTableModel, sectionsTableModel;
-	private Document lastSelectedDocument = null;
-	private int lastSelectedSection = -1;
+	private ArrayList<Document> documents = new ArrayList<>(); // document list
 
-	String username = null;
-	ImageIcon sharedIcon, notSharedIcon;
+	private DefaultTableModel documentsTableModel, sectionsTableModel; // table models
+
+	private Document lastSelectedDocument = null; // last selected document in the document table
+	private int      lastSelectedSection  = -1;   // index of the last selected section in the section table
+
+	private ImageIcon sharedIcon, notSharedIcon; // table icons
+
+	String username = null; // current username
 
 	/**
 	 * Creates the Graphical User Interface
@@ -39,7 +42,6 @@ public class ClientGUI extends JFrame {
 				16, 16, java.awt.Image.SCALE_SMOOTH));
 		notSharedIcon = new ImageIcon(notSharedIcon.getImage().getScaledInstance(
 				16, 16, java.awt.Image.SCALE_SMOOTH));
-
 
 		// prompt to confirm program closing
 		addWindowListener(new WindowAdapter() {
@@ -69,6 +71,7 @@ public class ClientGUI extends JFrame {
 			System.exit(0);
 		}
 
+		// sets statically the connection to the operations stubs
 		Operation.setConnection(connection);
 	}
 
@@ -131,6 +134,8 @@ public class ClientGUI extends JFrame {
 	 */
 	public void showWorkspace() {
 		setTitle("Turing - " + username);
+
+		// terminates the chat thread, if any
 		if (chatListener != null) {
 			chatListener.shutdown();
 			chatListener = null;
@@ -187,10 +192,10 @@ public class ClientGUI extends JFrame {
 		String[] sectionsTableColumns = new String[] {"Section"};
 		sectionsTableModel = new DefaultTableModel(sectionsTableColumns, 0);
 		JTable sectionsTable = new JTable(sectionsTableModel);
-		sectionsTable.setDefaultEditor(Object.class, null); // set table not editalbe
-		sectionsTable.getTableHeader().setReorderingAllowed(false); // block column ordering
-		sectionsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION); // force to select only one row
-		sectionsTable.getSelectionModel().addListSelectionListener(event -> {
+		sectionsTable.setDefaultEditor(Object.class, null);            // set table not editalbe
+		sectionsTable.getTableHeader().setReorderingAllowed(false);           // block column ordering
+		sectionsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);  // force to select only one row
+		sectionsTable.getSelectionModel().addListSelectionListener(event -> { // detects the click
 			if (event.getValueIsAdjusting())
 				lastSelectedSection = sectionsTable.getSelectedRow();
 		});
@@ -200,15 +205,14 @@ public class ClientGUI extends JFrame {
 		String[] documentsTableColumns = new String[] {"Name", "Creator", "Shared"};
 		documentsTableModel = new DefaultTableModel(documentsTableColumns, 0);
 		JTable documentsTable = new JTable(documentsTableModel) {
-			// returning the Class of each column will allow different renderers to be used based on Class
 			public Class getColumnClass(int column) {
-				return getValueAt(0, column).getClass();
+				return getValueAt(0, column).getClass(); // to render table icons
 			}
 		};
-		documentsTable.setDefaultEditor(Object.class, null); // set table not editalbe
-		documentsTable.getTableHeader().setReorderingAllowed(false); // lock column ordering
-		documentsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION); // force to select only one row
-		documentsTable.getSelectionModel().addListSelectionListener(event -> {
+		documentsTable.setDefaultEditor(Object.class, null);            // set table not editalbe
+		documentsTable.getTableHeader().setReorderingAllowed(false);           // lock column ordering
+		documentsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);  // force to select only one row
+		documentsTable.getSelectionModel().addListSelectionListener(event -> { // detects the click
 			if (event.getValueIsAdjusting())
 				updateSectionsTable(documentsTable.getSelectedRow());
 			sectionsTable.clearSelection();
@@ -219,11 +223,12 @@ public class ClientGUI extends JFrame {
 		centerPanel.add(documentsPanel);
 		centerPanel.add(sectionsPanel);
 
+		// to fill the document table with the updated documents
+		updateDocumentsTable();
+
 		// workspace
 		add(buttonsPanel, BorderLayout.WEST);
 		add(centerPanel, BorderLayout.CENTER);
-
-		updateDocumentsTable();
 		setVisible(true);
 	}
 
@@ -276,9 +281,11 @@ public class ClientGUI extends JFrame {
 		chatPanel.add(chatField, BorderLayout.CENTER);
 		chatPanel.add(sendButton, BorderLayout.SOUTH);
 
+		// start chat background thread
 		chatListener = new ChatListener(chatAddress, chatArea);
 		new Thread(chatListener).start();
 
+		// editing window
 		add(buttonsPanel, BorderLayout.WEST);
 		add(editingPanel, BorderLayout.CENTER);
 		add(chatPanel, BorderLayout.EAST);
@@ -302,9 +309,9 @@ public class ClientGUI extends JFrame {
 
 		// panels
 		JPanel buttonsPanel = new JPanel();
-		JPanel showingPanel = new JPanel();
+		JPanel documentPanel = new JPanel();
 		buttonsPanel.setLayout(new BoxLayout(buttonsPanel, BoxLayout.Y_AXIS));
-		showingPanel.setLayout(new BorderLayout());
+		documentPanel.setLayout(new BorderLayout());
 
 		// buttonsPanel
 		JButton backButton = new JButton("Back");
@@ -312,15 +319,16 @@ public class ClientGUI extends JFrame {
 		backButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 		buttonsPanel.add(backButton);
 
-		// showingPanel
+		// documentPanel
 		editingArea.setWrapStyleWord(true);
 		editingArea.setEditable(false);
 		JScrollPane editingScroll = new JScrollPane (
 				editingArea, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-		showingPanel.add(editingScroll, BorderLayout.CENTER);
+		documentPanel.add(editingScroll, BorderLayout.CENTER);
 
+		// document window
 		add(buttonsPanel, BorderLayout.WEST);
-		add(showingPanel, BorderLayout.CENTER);
+		add(documentPanel, BorderLayout.CENTER);
 		setVisible(true);
 	}
 
@@ -328,6 +336,7 @@ public class ClientGUI extends JFrame {
 	 * Creates the document creation dialog window
 	 */
 	private void showDocumentDialog() {
+		// components
 		JPanel window = new JPanel();
 		JLabel documentNameLabel = new JLabel("Document name");
 		JLabel sectionsLabel = new JLabel("Number of sections");
@@ -361,7 +370,8 @@ public class ClientGUI extends JFrame {
 			return;
 		}
 
-		Operation.createDocument(documentName, sections); // creating document
+		// creating document
+		Operation.createDocument(documentName, sections);
 	}
 
 	/**

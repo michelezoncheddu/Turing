@@ -51,7 +51,7 @@ public abstract class Operation {
 		Remote remoteObject;
 		try {
 			// obtaining the remote object
-			Registry registry = LocateRegistry.getRegistry(Client.HOST);
+			Registry registry = LocateRegistry.getRegistry(Client.SERVER_ADDR);
 			remoteObject = registry.lookup(Client.REGISTRATION_OBJECT);
 			serverObject = (UserManagerAPI) remoteObject;
 
@@ -95,10 +95,10 @@ public abstract class Operation {
 			return;
 		}
 
-		Client.frame.username = username;
 		connection.registerForNotifications(username, password);
+		Client.frame.username = username;
 		Client.frame.showWorkspace(); // create the workspace window
-		list();
+		list(); // download table data from server
 	}
 
 	/**

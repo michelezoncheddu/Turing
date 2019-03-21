@@ -41,8 +41,9 @@ public class ClientHandler implements Runnable {
 	public void run() {
 		BufferedReader reader; // input stream with the client
 
+		// setting timeout
 		try {
-			clientConnection.setSoTimeout(1000);
+			clientConnection.setSoTimeout(Server.TIMEOUT_MILLIS);
 		} catch (SocketException e) {
 			e.printStackTrace();
 		}
@@ -100,7 +101,7 @@ public class ClientHandler implements Runnable {
 			handleOperation(request);
 		}
 
-		// terminating thread
+		// closing streams and socket
 		try {
 			reader.close();
 			writer.close();

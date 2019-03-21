@@ -70,10 +70,13 @@ public class Connection {
 	 */
 	public void registerForNotifications(String username, String password) {
 		try {
-			Registry registry = LocateRegistry.getRegistry(Client.HOST);
-			ServerNotificationManagerAPI serverAPI = (ServerNotificationManagerAPI) registry.lookup(Client.NOTIFICATION_OBJECT);
-			ClientNotificationManager listener = new ClientNotificationManager();
+			// create a new listener and getting the stub
+			ClientNotificationManager    listener = new ClientNotificationManager();
 			ClientNotificationManagerAPI stub = (ClientNotificationManagerAPI) UnicastRemoteObject.exportObject(listener, 0);
+
+			// registering the stub
+			Registry registry = LocateRegistry.getRegistry(Client.SERVER_ADDR);
+			ServerNotificationManagerAPI serverAPI = (ServerNotificationManagerAPI) registry.lookup(Client.NOTIFICATION_OBJECT);
 			serverAPI.registerForNotifications(username, password, stub);
 		} catch (NullPointerException | RemoteException | NotBoundException e) {
 			Client.frame.showErrorDialog(e.getMessage());
