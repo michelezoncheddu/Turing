@@ -14,7 +14,7 @@ import javax.swing.text.NumberFormatter;
 /**
  * Implements the turing client Graphical User Interface
  */
-public class ClientGUI extends JFrame { // TODO: logout button
+public class ClientGUI extends JFrame {
 	private Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
 	private Connection connection; // connection with the server
@@ -26,14 +26,41 @@ public class ClientGUI extends JFrame { // TODO: logout button
 	private int lastSelectedSection = -1;
 
 	String username = null;
-	ImageIcon sharedIcon;
+	ImageIcon sharedIcon, notSharedIcon;
 
 	/**
 	 * Creates the Graphical User Interface
 	 */
 	public ClientGUI() {
-		super("Turing");
+		// load shared icon
+		sharedIcon = new ImageIcon("icons/shared_icon.png");
+		notSharedIcon = new ImageIcon("icons/not_shared_icon.png");
+		sharedIcon = new ImageIcon(sharedIcon.getImage().getScaledInstance(
+				16, 16, java.awt.Image.SCALE_SMOOTH));
+		notSharedIcon = new ImageIcon(notSharedIcon.getImage().getScaledInstance(
+				16, 16, java.awt.Image.SCALE_SMOOTH));
 
+
+		// prompt to confirm program closing
+		addWindowListener(new WindowAdapter() {
+			public void windowClosing(WindowEvent e) {
+				if (JOptionPane.showConfirmDialog(Client.frame, "Close turing?", "Quit",
+						JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) == JOptionPane.YES_OPTION) {
+					if (connection != null)
+						connection.close(); // close the connection with the server
+					System.exit(0);
+				}
+			}
+		});
+
+		startConnection();
+		showLoginWindow();
+	}
+
+	/**
+	 * Connects the client with the server
+	 */
+	private void startConnection() {
 		// try to connect with the server
 		try {
 			connection = new Connection(Client.DEFAULT_ADDRESS);
@@ -43,13 +70,17 @@ public class ClientGUI extends JFrame { // TODO: logout button
 		}
 
 		Operation.setConnection(connection);
+	}
 
-		// load shared icon
-		sharedIcon = new ImageIcon("icons/shared_icon.png");
-		sharedIcon = new ImageIcon(sharedIcon.getImage().getScaledInstance(16, 16, java.awt.Image.SCALE_SMOOTH));
-
-		int width = (int) (screenSize.width * 0.3);
-		int height = (int) (screenSize.height * 0.25);
+	/**
+	 * Creates the login window
+	 */
+	public void showLoginWindow() {
+		setTitle("Login");
+		setVisible(false);
+		getContentPane().removeAll();
+		int width = 350;
+		int height = 200;
 		setBounds(screenSize.width / 2 - width / 2, screenSize.height / 2 - height, width, height);
 
 		// panels
@@ -93,21 +124,12 @@ public class ClientGUI extends JFrame { // TODO: logout button
 		add(buttonsPanel);
 		setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 		setVisible(true);
-
-		// prompt to confirm program closing
-		addWindowListener(new WindowAdapter() {
-			public void windowClosing(WindowEvent e) {
-				if (JOptionPane.showConfirmDialog(Client.frame, "Close turing?", "Quit",
-						JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) == JOptionPane.YES_OPTION)
-					System.exit(0);
-			}
-		});
 	}
 
 	/**
 	 * Creates the workspace window
 	 */
-	public void createWorkspace() {
+	public void showWorkspace() {
 		setTitle("Turing - " + username);
 		if (chatListener != null) {
 			chatListener.shutdown();
@@ -133,23 +155,33 @@ public class ClientGUI extends JFrame { // TODO: logout button
 
 		// buttonsPanel
 		JButton createDocumentButton = new JButton("Create document");
-		JButton showDocumentButton = new JButton("Show document");
-		JButton showSectionButton = new JButton("Show section");
-		JButton editSectionButton = new JButton("Edit section");
-		JButton inviteButton = new JButton("Invite");
-		JButton refreshButton = new JButton("Refresh");
-		createDocumentButton.addActionListener(event -> createDocumentWindow());
-		showDocumentButton.addActionListener(event -> Operation.showDocument(lastSelectedDocument));
-		showSectionButton.addActionListener(event -> Operation.showSection(lastSelectedDocument, lastSelectedSection));
-		editSectionButton.addActionListener(event -> Operation.editSection(lastSelectedDocument, lastSelectedSection));
-		inviteButton.addActionListener(event -> inviteWindow());
-		refreshButton.addActionListener(event -> Operation.list());
+		JButton showDocumentButton   = new JButton("Show document");
+		JButton showSectionButton    = new JButton("Show section");
+		JButton editSectionButton    = new JButton("Edit section");
+		JButton inviteButton         = new JButton("Invite");
+		JButton refreshButton        = new JButton("Refresh");
+		JButton logoutbutton         = new JButton("Logout");
+		createDocumentButton.addActionListener(event -> showDocumentDialog());
+		showDocumentButton.addActionListener(event ->   Operation.showDocument(lastSelectedDocument));
+		showSectionButton.addActionListener(event ->    Operation.showSection(lastSelectedDocument, lastSelectedSection));
+		editSectionButton.addActionListener(event ->    Operation.editSection(lastSelectedDocument, lastSelectedSection));
+		inviteButton.addActionListener(event ->         showInviteWindow());
+		refreshButton.addActionListener(event ->        Operation.list());
+		logoutbutton.addActionListener(event ->         Operation.logout());
+		createDocumentButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		showDocumentButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		showSectionButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		editSectionButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		inviteButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		refreshButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		logoutbutton.setAlignmentX(Component.CENTER_ALIGNMENT);
 		buttonsPanel.add(createDocumentButton);
 		buttonsPanel.add(showDocumentButton);
 		buttonsPanel.add(showSectionButton);
 		buttonsPanel.add(editSectionButton);
 		buttonsPanel.add(inviteButton);
 		buttonsPanel.add(refreshButton);
+		buttonsPanel.add(logoutbutton);
 
 		// sectionsPanel
 		String[] sectionsTableColumns = new String[] {"Section"};
@@ -201,7 +233,7 @@ public class ClientGUI extends JFrame { // TODO: logout button
 	 * @param documentText the document content
 	 * @param chatAddress  the chat IP address
 	 */
-	public void createEditingWindow(String documentText, InetAddress chatAddress) {
+	public void showEditingWindow(String documentText, InetAddress chatAddress) {
 		setTitle("Turing - editing " + lastSelectedDocument.getName() + ", section " + (lastSelectedSection + 1));
 		setVisible(false);
 		getContentPane().removeAll();
@@ -221,6 +253,8 @@ public class ClientGUI extends JFrame { // TODO: logout button
 		JButton discardChangesButton = new JButton("Discard changes");
 		endEditButton.addActionListener(event -> Operation.endEdit(editingArea.getText()));
 		discardChangesButton.addActionListener(event -> Operation.endEdit(null));
+		endEditButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		discardChangesButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 		buttonsPanel.add(endEditButton);
 		buttonsPanel.add(discardChangesButton);
 
@@ -256,7 +290,7 @@ public class ClientGUI extends JFrame { // TODO: logout button
 	 *
 	 * @param documentText the document content
 	 */
-	public void createShowWindow(String documentText) {
+	public void showDocumentWindow(String documentText) {
 		if (lastSelectedSection < 0)
 			setTitle("Turing - showing " + lastSelectedDocument.getName());
 		else
@@ -274,7 +308,8 @@ public class ClientGUI extends JFrame { // TODO: logout button
 
 		// buttonsPanel
 		JButton backButton = new JButton("Back");
-		backButton.addActionListener(event -> createWorkspace());
+		backButton.addActionListener(event -> showWorkspace());
+		backButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 		buttonsPanel.add(backButton);
 
 		// showingPanel
@@ -290,9 +325,9 @@ public class ClientGUI extends JFrame { // TODO: logout button
 	}
 
 	/**
-	 * Creates the document creation window
+	 * Creates the document creation dialog window
 	 */
-	private void createDocumentWindow() {
+	private void showDocumentDialog() {
 		JPanel window = new JPanel();
 		JLabel documentNameLabel = new JLabel("Document name");
 		JLabel sectionsLabel = new JLabel("Number of sections");
@@ -332,7 +367,7 @@ public class ClientGUI extends JFrame { // TODO: logout button
 	/**
 	 * Creates the invite window
 	 */
-	private void inviteWindow() {
+	private void showInviteWindow() {
 		if (lastSelectedDocument == null) {
 			showErrorDialog("You must select a document to share");
 			return;
@@ -395,7 +430,7 @@ public class ClientGUI extends JFrame { // TODO: logout button
 	 * @param document the document to add
 	 */
 	private void addDocumentToTable(Document document) {
-		Object[] tableData = {document.getName(), document.getCreator(), document.isShared() ? sharedIcon : "no"};
+		Object[] tableData = {document.getName(), document.getCreator(), document.isShared() ? sharedIcon : notSharedIcon};
 		documentsTableModel.addRow(tableData);
 	}
 

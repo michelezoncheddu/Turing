@@ -19,6 +19,9 @@ import java.rmi.server.UnicastRemoteObject;
  */
 public class Connection {
 
+	// server socket
+	private Socket socket;
+
 	// streams with the server
 	private BufferedWriter writer;
 	private BufferedReader reader;
@@ -31,10 +34,10 @@ public class Connection {
 	 * @throws IOException if a network error occurs
 	 */
 	public Connection(InetSocketAddress address) throws IOException {
-		Socket defaultConnection = new Socket();
-		defaultConnection.connect(address);
-		writer = new BufferedWriter(new OutputStreamWriter(defaultConnection.getOutputStream(), StandardCharsets.UTF_8));
-		reader = new BufferedReader(new InputStreamReader(defaultConnection.getInputStream(), StandardCharsets.UTF_8));
+		socket = new Socket();
+		socket.connect(address);
+		writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8));
+		reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
 	}
 
 	/**
@@ -73,6 +76,17 @@ public class Connection {
 			ClientNotificationManagerAPI stub = (ClientNotificationManagerAPI) UnicastRemoteObject.exportObject(listener, 0);
 			serverAPI.registerForNotifications(username, password, stub);
 		} catch (NullPointerException | RemoteException | NotBoundException e) {
+			Client.frame.showErrorDialog(e.getMessage());
+		}
+	}
+
+	/**
+	 * Closes the current connection with the server
+	 */
+	public void close() {
+		try {
+			socket.close();
+		} catch (IOException e) {
 			Client.frame.showErrorDialog(e.getMessage());
 		}
 	}

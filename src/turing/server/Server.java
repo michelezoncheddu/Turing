@@ -3,13 +3,18 @@ package turing.server;
 import turing.ServerNotificationManagerAPI;
 import turing.UserManagerAPI;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.rmi.AlreadyBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.*;
 import java.rmi.server.*;
+import java.util.Comparator;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -61,37 +66,55 @@ public class Server implements Runnable {
 
 		// termination function
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+			// close socket
 			try {
 				serverSocket.close();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
+
+			// terminate thread pool
+			out.println("Waiting threads termination...");
+			threadPool.shutdown();
+			ClientHandler.stopAllHandlers();
+			try {
+				if (threadPool.awaitTermination(3, TimeUnit.SECONDS))
+					out.println("Threads terminated correctly");
+				else {
+					out.println("Forcing termination...");
+					threadPool.shutdownNow();
+				}
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+
+			// deleting files
+			out.println("Deleting files...");
+			Path rootPath = Paths.get("docs/");
+			try {
+				Files.walk(rootPath)
+						.sorted(Comparator.reverseOrder())
+						.map(Path::toFile)
+						.forEach(File::delete);
+			} catch (IOException e) {
+				out.println("No files to delete");
+			}
+			out.println("Server stopped");
 		}));
 
-		out.println("Server ready, waiting for connections...");
+		out.println("Server ready, waiting for connections...\nPress ctrl-C to terminate");
 
 		// waiting for connections loop
 		while (true) {
 			try {
 				clientConnection = serverSocket.accept();
 			} catch (IOException e) {
-				if (serverSocket.isClosed())
+				if (serverSocket.isClosed()) // terminate server
 					break;
 				throw new RuntimeException("Error accepting client connection", e);
 			}
 			threadPool.execute(new ClientHandler(clientConnection));
 		}
-
-		// await thread pool termination
-		out.println("Waiting threads termination...");
-		threadPool.shutdown();
-		try {
-			threadPool.awaitTermination(3, TimeUnit.SECONDS);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-		out.println("Server stopped");
-		System.exit(0);
 	}
 
 	/**

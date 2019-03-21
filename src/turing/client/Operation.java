@@ -97,8 +97,24 @@ public abstract class Operation {
 
 		Client.frame.username = username;
 		connection.registerForNotifications(username, password);
-		Client.frame.createWorkspace(); // create the workspace window
+		Client.frame.showWorkspace(); // create the workspace window
 		list();
+	}
+
+	/**
+	 * Performs the logout operation
+	 */
+	public static void logout() {
+		// create a logout request
+		JSONObject request = new JSONObject();
+		request.put(Fields.OP, Fields.OP_LOGOUT);
+
+		JSONObject reply = connection.requestReply(request);
+
+		if (isErrorMessage(reply))
+			Client.frame.showErrorDialog((String) reply.get(Fields.ERR_MSG));
+
+		Client.frame.showLoginWindow();
 	}
 
 	/**
@@ -148,7 +164,7 @@ public abstract class Operation {
 			return;
 		}
 
-		Client.frame.createShowWindow((String) reply.get(Fields.DOC_CONTENT));
+		Client.frame.showDocumentWindow((String) reply.get(Fields.DOC_CONTENT));
 	}
 
 	/**
@@ -177,7 +193,7 @@ public abstract class Operation {
 			return;
 		}
 
-		Client.frame.createShowWindow((String) reply.get(Fields.SEC_CONTENT));
+		Client.frame.showDocumentWindow((String) reply.get(Fields.SEC_CONTENT));
 	}
 
 	/**
@@ -212,7 +228,7 @@ public abstract class Operation {
 		} catch (UnknownHostException e) {
 			Client.frame.showErrorDialog("Chat unavailable");
 		}
-		Client.frame.createEditingWindow((String) reply.get(Fields.SEC_CONTENT), chatAddress);
+		Client.frame.showEditingWindow((String) reply.get(Fields.SEC_CONTENT), chatAddress);
 	}
 
 	/**
@@ -233,7 +249,7 @@ public abstract class Operation {
 			return;
 		}
 
-		Client.frame.createWorkspace();
+		Client.frame.showWorkspace();
 	}
 
 	/**

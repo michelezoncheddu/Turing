@@ -23,6 +23,8 @@ public class ClientHandler implements Runnable {
 	private BufferedWriter writer;   // output stream with the client
 	private User currentUser = null; // currently logged user
 
+	private static boolean stop = false;
+
 	/**
 	 * Creates a new client handler with a connection with a client
 	 *
@@ -39,6 +41,12 @@ public class ClientHandler implements Runnable {
 	public void run() {
 		BufferedReader reader; // input stream with the client
 
+		try {
+			clientConnection.setSoTimeout(1000);
+		} catch (SocketException e) {
+			e.printStackTrace();
+		}
+
 		// open streams
 		try {
 			reader = new BufferedReader(new InputStreamReader(clientConnection.getInputStream(), StandardCharsets.UTF_8));
@@ -48,11 +56,13 @@ public class ClientHandler implements Runnable {
 			return;
 		}
 
-		while (true) {
+		while (!stop) {
 			// read request
 			String requestString;
 			try {
 				requestString = reader.readLine();
+			} catch (SocketTimeoutException e) {
+				continue;
 			} catch (IOException e) { // communication error with the client
 				logout();
 				break;
@@ -97,9 +107,8 @@ public class ClientHandler implements Runnable {
 			clientConnection.close();
 		} catch (IOException e) {
 			e.printStackTrace();
-		} finally {
-			out.println("Handler " + Thread.currentThread() + " terminated");
 		}
+		out.println("Handler " + Thread.currentThread().getName() + " terminated");
 	}
 
 	/**
@@ -270,6 +279,7 @@ public class ClientHandler implements Runnable {
 				e.printStackTrace(); // disk error
 			}
 		}
+		sendAck();
 		currentUser.setEditingSection(null);
 		currentUser.setNotifier(null);
 		currentUser = null;
@@ -594,5 +604,12 @@ public class ClientHandler implements Runnable {
 			return null;
 		}
 		return document;
+	}
+
+	/**
+	 * Sets the flag stop to terminate all active handlers
+	 */
+	public static void stopAllHandlers() {
+		stop = true;
 	}
 }
