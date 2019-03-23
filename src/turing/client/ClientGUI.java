@@ -79,7 +79,7 @@ public class ClientGUI extends JFrame {
 	 * Creates the login window
 	 */
 	public void showLoginWindow() {
-		setTitle("Login");
+		setTitle("Turing - Login");
 		setVisible(false);
 		getContentPane().removeAll();
 		int width = 350;

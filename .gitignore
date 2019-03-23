@@ -9,6 +9,7 @@
 *.iml
 
 .idea/
+bin/
 docs/
 lib/
 out/
