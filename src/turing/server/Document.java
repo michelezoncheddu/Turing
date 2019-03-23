@@ -35,7 +35,7 @@ public class Document {
 	 * @param sections the number of sections
 	 *
 	 * @throws IOException                  if a disk error occurs
-	 * @throws IllegalArgumentException     if sections is < 1 or > Server.MAX_SECTIONS
+	 * @throws IllegalArgumentException     if sections is &lt; 1 or &gt; Server.MAX_SECTIONS
 	 * @throws PreExistentDocumentException if the document already exists
 	 */
 	public Document(String name, User creator, int sections)
@@ -169,7 +169,8 @@ public class Document {
 	/**
 	 * Sends a message to the chat channel
 	 *
-	 * @param message the message to send
+	 * @param message  the message to send
+	 * @param username the sender username
 	 *
 	 * @return true if the message have been sent
 	 *         false otherwise

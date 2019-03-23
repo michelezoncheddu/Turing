@@ -129,6 +129,9 @@ public class Server implements Runnable {
 	 *
 	 * @param userManager         the user manager to export
 	 * @param notificationManager the notification manager to export
+	 *
+	 * @throws RemoteException       if a RMI communication error occurs
+	 * @throws AlreadyBoundException if an object was already bound
 	 */
 	private void exportObjects(UserManagerAPI userManager, ServerNotificationManagerAPI notificationManager)
 			throws RemoteException, AlreadyBoundException {
@@ -147,6 +150,8 @@ public class Server implements Runnable {
 
 	/**
 	 * Main function
+	 *
+	 * @param args the server arguments
 	 */
 	public static void main(String[] args) {
 		new Thread(new Server()).start();

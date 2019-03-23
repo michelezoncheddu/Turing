@@ -67,6 +67,9 @@ public class Connection {
 
 	/**
 	 * Registers the client for server notifications
+	 *
+	 * @param username the user username to register for notifications
+	 * @param password the user password
 	 */
 	public void registerForNotifications(String username, String password) {
 		try {

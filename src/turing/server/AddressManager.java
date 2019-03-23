@@ -9,10 +9,13 @@ import java.util.TreeSet;
  */
 public abstract class AddressManager {
 	private static TreeSet<InetAddress> addresses = new TreeSet<>(new InetAddressComparator());
-	private static int c = 0, b = 0, a = 0;
+	private static int c = 0, b = 0, a = 0; // address part
 
 	/**
-	 * Creates and saves a new multicast address
+	 * Creates and reserves a new multicast address
+	 *
+	 * @return the generated address, if free
+	 *         null otherwise
 	 */
 	public static synchronized InetAddress createAddress() {
 		InetAddress address;
@@ -40,6 +43,8 @@ public abstract class AddressManager {
 
 	/**
 	 * Removes the multicast address from the saved ones
+	 *
+	 * @param address the address to free
 	 */
 	public static void freeAddress(InetAddress address) {
 		addresses.remove(address);

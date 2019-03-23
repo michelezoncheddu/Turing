@@ -31,9 +31,14 @@ public abstract class Operation {
 
 	/**
 	 * Checks if the reply is an error message
+	 *
+	 * @param message the message to check
+	 *
+	 * @return true if the message contains an error
+	 *         fale otherwise
 	 */
-	private static boolean isErrorMessage(JSONObject reply) {
-		return reply.get(Fields.STATUS).equals(Fields.STATUS_ERR);
+	private static boolean isErrorMessage(JSONObject message) {
+		return message.get(Fields.STATUS).equals(Fields.STATUS_ERR);
 	}
 
 	/**

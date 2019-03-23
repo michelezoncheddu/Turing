@@ -409,6 +409,8 @@ public class ClientGUI extends JFrame {
 
 	/**
 	 * Shows an error window with an information message and description
+	 *
+	 * @param message the info message to show
 	 */
 	public void showInfoDialog(String message) {
 		JOptionPane.showMessageDialog(Client.frame, message,"Info", JOptionPane.INFORMATION_MESSAGE);
@@ -416,6 +418,8 @@ public class ClientGUI extends JFrame {
 
 	/**
 	 * Shows an error window with an error message and description
+	 *
+	 * @param message the error message to show
 	 */
 	public void showErrorDialog(String message) {
 		JOptionPane.showMessageDialog(Client.frame, message,"Error", JOptionPane.ERROR_MESSAGE);

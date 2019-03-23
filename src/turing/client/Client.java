@@ -24,6 +24,8 @@ public class Client {
 
 	/**
 	 * Starts the client GUI
+	 *
+	 * @param args the client arguments
 	 */
 	public static void main(String[] args) { SwingUtilities.invokeLater(() -> frame = new ClientGUI()); }
 }
