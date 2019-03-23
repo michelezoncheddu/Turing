@@ -143,9 +143,9 @@ public class Server implements Runnable {
 			throws RemoteException, AlreadyBoundException {
 		// exporting objects
 		UserManagerAPI userManagerStub =
-				(UserManagerAPI) UnicastRemoteObject.exportObject(userManager, 0);
+				(UserManagerAPI) UnicastRemoteObject.exportObject(userManager, 1099);
 		ServerNotificationManagerAPI notificationStub =
-				(ServerNotificationManagerAPI) UnicastRemoteObject.exportObject(notificationManager, 0);
+				(ServerNotificationManagerAPI) UnicastRemoteObject.exportObject(notificationManager, 1099);
 
 		Registry registry = LocateRegistry.createRegistry(RMI_PORT);
 
