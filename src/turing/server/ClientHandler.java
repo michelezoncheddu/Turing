@@ -306,7 +306,7 @@ public class ClientHandler implements Runnable {
 		}
 
 		currentUser.addDocument(newDoc);
-		DocumentManager.put(newDoc);
+		Server.documentManager.put(newDoc);
 		sendAck();
 	}
 
@@ -474,7 +474,8 @@ public class ClientHandler implements Runnable {
 		// get the document to share
 		Document document;
 		try {
-			document = DocumentManager.getAsCreator(currentUser, DocumentManager.makeKey(creator, docName));
+			document = Server.documentManager.getAsCreator(
+					currentUser, Server.documentManager.makeKey(creator, docName));
 		} catch (UserNotAllowedException e) {
 			sendError(e.getMessage());
 			System.err.println(currentUser + " not allowed to share " + docName);
@@ -595,7 +596,8 @@ public class ClientHandler implements Runnable {
 	private Document getDocument(String docName, String creator) {
 		Document document;
 		try {
-			document = DocumentManager.getAsGuest(currentUser, DocumentManager.makeKey(creator, docName));
+			document = Server.documentManager.getAsGuest(
+					currentUser, Server.documentManager.makeKey(creator, docName));
 		} catch (UserNotAllowedException e) {
 			sendError(e.getMessage());
 			System.err.println(currentUser + " not allowed to get " + docName);

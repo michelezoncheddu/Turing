@@ -25,32 +25,38 @@ import static java.lang.System.out;
  * Implements the turing server
  */
 public class Server implements Runnable {
-	static String DOCS_ROOT      = "data"; // documents folder
-	static int    DEFAULT_PORT   = 1100;   // server socket port
-	static int    CHAT_PORT      = 1101;   // multicast port
-	static int    RMI_PORT       = 1099;   // Java RMI port
-	static int    MTU            = 1500;   // Ethernet MTU
+	static final String DOCS_ROOT      = "data"; // documents folder
+	static final int    DEFAULT_PORT   = 1100;   // server socket port
+	static final int    CHAT_PORT      = 1101;   // multicast port
+	static final int    RMI_PORT       = 1099;   // Java RMI port
+	static final int    MTU            = 1500;   // Ethernet MTU
 
-	static int    MAX_SECTIONS   = 1024;   // max number of sections for a document
+	static final int    MAX_SECTIONS   = 1024;   // max number of sections for a document
 
-	static int    TIMEOUT_MILLIS = 1000;   // handler thread timeout
+	static final int    TIMEOUT_MILLIS = 1000;   // handler thread timeout
 
 	// Java RMI objects name
-	static String REGISTRATION_OBJECT = "reg";
-	static String NOTIFICATION_OBJECT = "not";
+	static final String REGISTRATION_OBJECT = "reg";
+	static final String NOTIFICATION_OBJECT = "not";
 
 	// global managers
-	static UserManager               userManager;
-	static ServerNotificationManager notificationManager;
+	static final UserManager               userManager         = new UserManager();
+	static final DocumentManager           documentManager     = new DocumentManager();
+	static final AddressManager            addressManager      = new AddressManager();
+	static final ServerNotificationManager notificationManager = new ServerNotificationManager();
+
+	/**
+	 * Creates a new server
+	 */
+	public Server() {
+		super();
+	}
 
 	/**
 	 * Starts the server
 	 */
 	@Override
 	public void run() {
-		userManager         = new UserManager();
-		notificationManager = new ServerNotificationManager();
-
 		// exporting managers
 		try {
 			exportObjects(userManager, notificationManager);

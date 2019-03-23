@@ -110,7 +110,7 @@ public class Document {
 	public void addEditingUser() {
 		editingUsers++;
 		if (chatAddress == null) // first editing user joined
-			openChat(AddressManager.createAddress());
+			openChat(Server.addressManager.createAddress());
 	}
 
 	/**
@@ -216,7 +216,7 @@ public class Document {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		AddressManager.freeAddress(chatAddress);
+		Server.addressManager.freeAddress(chatAddress);
 		chatAddress = null;
 	}
 }

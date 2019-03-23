@@ -17,6 +17,13 @@ public class UserManager extends RemoteServer implements UserManagerAPI {
 	private Map<String, User> users = new ConcurrentHashMap<>();
 
 	/**
+	 * Creates a new user manager
+	 */
+	public UserManager() {
+		super();
+	}
+
+	/**
 	 * Registers a new user
 	 *
 	 * @param username the user username

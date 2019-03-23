@@ -22,6 +22,13 @@ public abstract class Operation {
 	private static Connection connection; // connection with the server
 
 	/**
+	 * Creates a new operation class
+	 */
+	private Operation() {
+		super();
+	}
+
+	/**
 	 * Sets the connection
 	 *
 	 * @param newConnection connection with the server

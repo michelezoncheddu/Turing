@@ -10,15 +10,22 @@ import java.util.Map;
 /**
  * Implements a concurrent document manager
  */
-public abstract class DocumentManager {
-	private static Map<String, Document> documents = new HashMap<>();
+public class DocumentManager {
+	private Map<String, Document> documents = new HashMap<>();
+
+	/**
+	 * Creates a new document manager
+	 */
+	public DocumentManager() {
+		super();
+	}
 
 	/**
 	 * Adds a new document in the collection
 	 *
 	 * @param document the document to add
 	 */
-	public static void put(Document document) {
+	public void put(Document document) {
 		documents.putIfAbsent(makeKey(document), document);
 	}
 
@@ -33,7 +40,7 @@ public abstract class DocumentManager {
 	 * @throws UserNotAllowedException     if the user is not allowed to get the document
 	 * @throws InexistentDocumentException if the document doesn't exist
 	 */
-	public static Document getAsGuest(User user, String docKey)
+	public Document getAsGuest(User user, String docKey)
 			throws UserNotAllowedException, InexistentDocumentException {
 		Document document = get(docKey);
 
@@ -55,7 +62,7 @@ public abstract class DocumentManager {
 	 * @throws UserNotAllowedException     if the user is not the document creator
 	 * @throws InexistentDocumentException if the document doesn't exist
 	 */
-	public static Document getAsCreator(User user, String docKey)
+	public Document getAsCreator(User user, String docKey)
 			throws UserNotAllowedException, InexistentDocumentException {
 		Document document = get(docKey);
 
@@ -75,7 +82,7 @@ public abstract class DocumentManager {
 	 *
 	 * @throws InexistentDocumentException if the document doesn't exist
 	 */
-	private static Document get(String docKey) throws InexistentDocumentException {
+	private Document get(String docKey) throws InexistentDocumentException {
 		Document document = documents.get(docKey);
 		if (document == null)
 			throw new InexistentDocumentException("Inexistent document");
@@ -89,7 +96,7 @@ public abstract class DocumentManager {
 	 *
 	 * @return the key string
 	 */
-	public static String makeKey(Document document) {
+	public String makeKey(Document document) {
 		return document.getCreator().getUsername() + File.separator + document.getName();
 	}
 
@@ -101,7 +108,7 @@ public abstract class DocumentManager {
 	 *
 	 * @return the key string
 	 */
-	public static String makeKey(String creatorUsername, String documentName) {
+	public String makeKey(String creatorUsername, String documentName) {
 		return creatorUsername + File.separator + documentName;
 	}
 }

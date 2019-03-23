@@ -13,6 +13,13 @@ import java.rmi.RemoteException;
 public class ClientNotificationManager implements ClientNotificationManagerAPI {
 
 	/**
+	 * Creates a new client notification mananger
+	 */
+	public ClientNotificationManager() {
+		super();
+	}
+
+	/**
 	 * Sends a notification to the client by the server
 	 *
 	 * @param notification the notification to send

@@ -3,13 +3,22 @@ package turing.server;
 import java.net.InetAddress;
 import java.util.Comparator;
 
-// https://thilosdevblog.wordpress.com/2010/09/15/sorting-ip-addresses-in-java/
+/**
+ * A comparator class for sorting addresses in the address manager
+ */
 public class InetAddressComparator implements Comparator<InetAddress> {
 
+	/**
+	 * Creates a new inet address comparator
+	 */
+	public InetAddressComparator() {
+		super();
+	}
+
 	@Override
-	public int compare(InetAddress adr1, InetAddress adr2) {
-		byte[] ba1 = adr1.getAddress();
-		byte[] ba2 = adr2.getAddress();
+	public int compare(InetAddress addr1, InetAddress addr2) {
+		byte[] ba1 = addr1.getAddress();
+		byte[] ba2 = addr2.getAddress();
 
 		// general ordering: ipv4 before ipv6
 		if (ba1.length < ba2.length) return -1;

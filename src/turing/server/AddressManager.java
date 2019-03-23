@@ -7,9 +7,16 @@ import java.util.TreeSet;
 /**
  * Implements a concurrent multicast address manager
  */
-public abstract class AddressManager {
-	private static TreeSet<InetAddress> addresses = new TreeSet<>(new InetAddressComparator());
-	private static int c = 0, b = 0, a = 0; // address part
+public class AddressManager {
+	private TreeSet<InetAddress> addresses = new TreeSet<>(new InetAddressComparator());
+	private int c = 0, b = 0, a = 0; // address part
+
+	/**
+	 * Creates a new address manager
+	 */
+	public AddressManager() {
+		super();
+	}
 
 	/**
 	 * Creates and reserves a new multicast address
@@ -17,7 +24,7 @@ public abstract class AddressManager {
 	 * @return the generated address, if free
 	 *         null otherwise
 	 */
-	public static synchronized InetAddress createAddress() {
+	public synchronized InetAddress createAddress() {
 		InetAddress address;
 
 		// search for a free address
@@ -46,14 +53,14 @@ public abstract class AddressManager {
 	 *
 	 * @param address the address to free
 	 */
-	public static void freeAddress(InetAddress address) {
+	public void freeAddress(InetAddress address) {
 		addresses.remove(address);
 	}
 
 	/**
 	 * Generates the next multicast address
 	 */
-	private static void nextAddress() {
+	private void nextAddress() {
 		a = (a + 1) % 256;
 		if (a == 0) {
 			b = (b + 1) % 256;

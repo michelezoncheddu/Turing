@@ -11,6 +11,13 @@ import java.rmi.RemoteException;
 public class ServerNotificationManager implements ServerNotificationManagerAPI {
 
 	/**
+	 * Creates a new server notification mananger
+	 */
+	public ServerNotificationManager() {
+		super();
+	}
+
+	/**
 	 * Registers an user for receiving server notifications
 	 *
 	 * @param username the user username

@@ -23,6 +23,13 @@ public class Client {
 	static ClientGUI frame;
 
 	/**
+	 * Creates a new client
+	 */
+	public Client() {
+		super();
+	}
+
+	/**
 	 * Starts the client GUI
 	 *
 	 * @param args the client arguments

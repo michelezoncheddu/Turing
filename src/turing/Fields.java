@@ -5,6 +5,13 @@ package turing;
  */
 public final class Fields {
 
+	/**
+	 * Creates a new fields class
+	 */
+	private Fields() {
+		super();
+	}
+
 	// operations
 	public static final String OP              = "o";
 	public static final String OP_LOGIN        = "o_0";
