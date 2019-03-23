@@ -5,7 +5,8 @@ SRCPATH=$SCRIPTPATH/src
 
 cd $SCRIPTPATH
 
-mkdir lib
+
+mkdir -p lib
 cd lib
 if [ ! -f json-20180813.jar ]; then
     curl http://central.maven.org/maven2/org/json/json/20180813/json-20180813.jar -o json-20180813.jar
