@@ -25,7 +25,7 @@ import static java.lang.System.out;
  * Implements the turing server
  */
 public class Server implements Runnable {
-	static String DOCS_ROOT      = "docs"; // documents folder
+	static String DOCS_ROOT      = "data"; // documents folder
 	static int    DEFAULT_PORT   = 1100;   // server socket port
 	static int    CHAT_PORT      = 1101;   // multicast port
 	static int    RMI_PORT       = 1099;   // Java RMI port

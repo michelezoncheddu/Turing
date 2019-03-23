@@ -1,6 +1,7 @@
 package turing.client;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import turing.Fields;
 import turing.UserManagerAPI;
@@ -230,7 +231,7 @@ public abstract class Operation {
 		InetAddress chatAddress = null;
 		try {
 			chatAddress = InetAddress.getByName((String) reply.get(Fields.CHAT_ADDR));
-		} catch (UnknownHostException e) {
+		} catch (JSONException | UnknownHostException e) {
 			Client.frame.showErrorDialog("Chat unavailable");
 		}
 		Client.frame.showEditingWindow((String) reply.get(Fields.SEC_CONTENT), chatAddress);

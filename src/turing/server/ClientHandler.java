@@ -425,7 +425,8 @@ public class ClientHandler implements Runnable {
 			JSONObject reply = new JSONObject();
 			reply.put(Fields.STATUS, Fields.STATUS_OK)
 					.put(Fields.SEC_CONTENT, content)
-					.put(Fields.CHAT_ADDR, document.getChatAddress().getHostAddress());
+					.put(Fields.CHAT_ADDR,
+							document.getChatAddress() == null ? null : document.getChatAddress().getHostAddress());
 			sendMessage(reply);
 		} else {
 			sendError(section.getEditingUser().getUsername() + " is editing this section");
