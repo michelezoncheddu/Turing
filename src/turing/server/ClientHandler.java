@@ -45,7 +45,8 @@ public class ClientHandler implements Runnable {
 		try {
 			clientConnection.setSoTimeout(Server.TIMEOUT_MILLIS);
 		} catch (SocketException e) {
-			e.printStackTrace();
+			System.err.println("Cannot set socket timeout: " + e.getMessage());
+			return;
 		}
 
 		// open streams
@@ -53,7 +54,7 @@ public class ClientHandler implements Runnable {
 			reader = new BufferedReader(new InputStreamReader(clientConnection.getInputStream(), StandardCharsets.UTF_8));
 			writer = new BufferedWriter(new OutputStreamWriter(clientConnection.getOutputStream(), StandardCharsets.UTF_8));
 		} catch (IOException e) {
-			e.printStackTrace(); // communication error with the client
+			System.err.println("Cannot open streams with the client: " + e.getMessage());
 			return;
 		}
 
@@ -62,11 +63,12 @@ public class ClientHandler implements Runnable {
 			String requestString;
 			try {
 				requestString = reader.readLine();
-			} catch (SocketTimeoutException e) {
-				continue;
 			} catch (IOException e) { // communication error with the client
+				System.err.println("Cannot read client request: " + e.getMessage());
 				logout();
 				break;
+			} catch (SocketTimeoutException e) {
+				continue;
 			}
 
 			// client disconnected
@@ -77,9 +79,9 @@ public class ClientHandler implements Runnable {
 					writer.close();
 					clientConnection.close();
 				} catch (IOException e) {
-					e.printStackTrace();
+					System.err.println("Cannot close client socket or streams: " + e.getMessage());
 				}
-				out.println("Client disconnected");
+				out.println((currentUser == null ? "User" : currentUser.getUsername()) + " disconnected");
 				break; // terminate thread
 			}
 
@@ -107,7 +109,7 @@ public class ClientHandler implements Runnable {
 			writer.close();
 			clientConnection.close();
 		} catch (IOException e) {
-			e.printStackTrace();
+			System.err.println("Cannot close client socket or streams: " + e.getMessage());
 		}
 		out.println("Handler " + Thread.currentThread().getName() + " terminated");
 	}
@@ -192,7 +194,7 @@ public class ClientHandler implements Runnable {
 			writer.newLine();
 			writer.flush();
 		} catch (IOException e) {
-			e.printStackTrace();
+			System.err.println("communication error: " + e.getMessage());
 		}
 	}
 
@@ -207,25 +209,25 @@ public class ClientHandler implements Runnable {
 			writer.newLine();
 			writer.flush();
 		} catch (IOException e) {
-			e.printStackTrace();
+			System.err.println("communication error: " + e.getMessage());
 		}
 	}
 
 	/**
 	 * Sends an error message to the client
 	 *
-	 * @param msg the explanation of the error to include in the message
+	 * @param error_message the explanation of the error to include in the message
 	 */
-	private void sendError(String msg) {
+	private void sendError(String error_message) {
 		JSONObject message = new JSONObject();
 		message.put(Fields.STATUS, Fields.STATUS_ERR)
-				.put(Fields.ERR_MSG, msg);
+				.put(Fields.ERR_MSG, error_message);
 		try {
 			writer.write(message.toString());
 			writer.newLine();
 			writer.flush();
 		} catch (IOException e) {
-			e.printStackTrace();
+			System.err.println("communication error: " + e.getMessage());
 		}
 	}
 
@@ -277,7 +279,7 @@ public class ClientHandler implements Runnable {
 			try {
 				currentSection.endEdit(currentUser, null);
 			} catch (IOException e) {
-				e.printStackTrace(); // disk error
+				System.err.println("Disk error: " + e.getMessage()); // disk error
 			}
 		}
 		sendAck();
@@ -521,7 +523,7 @@ public class ClientHandler implements Runnable {
 			try {
 				user.sendNotification(notification.toString());
 			} catch (RemoteException e) {
-				e.printStackTrace();
+				System.err.println("Cannot send notification to the client: " + e.getMessage());
 			}
 		}).start();
 

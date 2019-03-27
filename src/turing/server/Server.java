@@ -61,7 +61,7 @@ public class Server implements Runnable {
 		try {
 			exportObjects(userManager, notificationManager);
 		} catch (RemoteException | AlreadyBoundException e) {
-			e.printStackTrace();
+			System.err.println("Error exporting objects: " + e.getMessage());
 			return; // terminate server
 		}
 
@@ -70,7 +70,7 @@ public class Server implements Runnable {
 		try {
 			serverSocket = new ServerSocket(DEFAULT_PORT);
 		} catch (IOException e) {
-			e.printStackTrace(); // cannot create socket
+			System.err.println("Cannot create socket: " + e.getMessage()); // cannot create socket
 			return;
 		}
 
@@ -83,7 +83,7 @@ public class Server implements Runnable {
 			try {
 				serverSocket.close();
 			} catch (IOException e) {
-				e.printStackTrace();
+				System.err.println("Error closing socket: " + e.getMessage());
 			}
 
 			// terminate thread pool
@@ -98,7 +98,7 @@ public class Server implements Runnable {
 					threadPool.shutdownNow();
 				}
 			} catch (InterruptedException e) {
-				e.printStackTrace();
+				System.err.println("Waiting interrupted: " + e.getMessage());
 			}
 
 			// deleting files

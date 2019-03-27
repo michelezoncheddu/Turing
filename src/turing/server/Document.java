@@ -203,7 +203,7 @@ public class Document {
 			channel = DatagramChannel.open();
 			channel.setOption(StandardSocketOptions.IP_MULTICAST_IF, networkInterface);
 		} catch (IOException e) {
-			e.printStackTrace(); // chat unavailable
+			System.err.println("Cannot create chat channel: " + e.getMessage()); // chat unavailable
 		}
 	}
 
@@ -214,7 +214,7 @@ public class Document {
 		try {
 			channel.close();
 		} catch (IOException e) {
-			e.printStackTrace();
+			System.err.println("Cannot close chat channel: " + e.getMessage());
 		}
 		Server.addressManager.freeAddress(chatAddress);
 		chatAddress = null;
