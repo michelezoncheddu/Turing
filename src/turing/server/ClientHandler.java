@@ -19,11 +19,14 @@ import static java.lang.System.out;
  * A thread that implements the operations of a individual client
  */
 public class ClientHandler implements Runnable {
-	private Socket clientConnection; // connection with the client
-	private BufferedWriter writer;   // output stream with the client
-	private User currentUser = null; // currently logged user
+	private enum Status {NOT_LOGGED, LOGGED, EDITING} // possibile status
 
-	private static boolean stop = false;
+	private Socket clientConnection;           // connection with the client
+	private BufferedWriter writer;             // output stream with the client
+	private User currentUser = null;           // currently logged user
+	private Status status = Status.NOT_LOGGED; // current user status
+
+	private static boolean stop = false;       // all-threads stop flag
 
 	/**
 	 * Creates a new client handler with a connection with a client
@@ -63,12 +66,12 @@ public class ClientHandler implements Runnable {
 			String requestString;
 			try {
 				requestString = reader.readLine();
+			} catch (SocketTimeoutException e) {
+				continue;
 			} catch (IOException e) { // communication error with the client
 				System.err.println("Cannot read client request: " + e.getMessage());
 				logout();
 				break;
-			} catch (SocketTimeoutException e) {
-				continue;
 			}
 
 			// client disconnected
@@ -127,32 +130,32 @@ public class ClientHandler implements Runnable {
 			return false;
 
 		switch ((String) request.get(Fields.OP)) {
-		case Fields.OP_LOGIN:
-			return request.has(Fields.USERNAME) && request.has(Fields.PASSWORD);
+			case Fields.OP_LOGIN:
+				return request.has(Fields.USERNAME) && request.has(Fields.PASSWORD);
 
-		case Fields.OP_CREATE_DOC:
-			return request.has(Fields.DOC_NAME) && request.has(Fields.SECTIONS);
+			case Fields.OP_CREATE_DOC:
+				return request.has(Fields.DOC_NAME) && request.has(Fields.SECTIONS);
 
-		case Fields.OP_SHOW_DOC:
-			return request.has(Fields.DOC_NAME) && request.has(Fields.DOC_CREATOR);
+			case Fields.OP_SHOW_DOC:
+				return request.has(Fields.DOC_NAME) && request.has(Fields.DOC_CREATOR);
 
-		case Fields.OP_SHOW_SEC:
-			return request.has(Fields.DOC_NAME) && request.has(Fields.DOC_CREATOR) &&
-					request.has(Fields.DOC_SECTION);
+			case Fields.OP_SHOW_SEC:
+				return request.has(Fields.DOC_NAME) && request.has(Fields.DOC_CREATOR) &&
+						request.has(Fields.DOC_SECTION);
 
-		case Fields.OP_EDIT_SEC:
-		 return request.has(Fields.DOC_CREATOR) && request.has(Fields.DOC_NAME) &&
-				 request.has(Fields.DOC_SECTION);
+			case Fields.OP_EDIT_SEC:
+				return request.has(Fields.DOC_CREATOR) && request.has(Fields.DOC_NAME) &&
+						request.has(Fields.DOC_SECTION);
 
-		case Fields.OP_INVITE:
-		return request.has(Fields.USERNAME) && request.has(Fields.DOC_CREATOR) &&
-				request.has(Fields.DOC_NAME);
+			case Fields.OP_INVITE:
+				return request.has(Fields.USERNAME) && request.has(Fields.DOC_CREATOR) &&
+						request.has(Fields.DOC_NAME);
 
-		case Fields.OP_CHAT_MSG:
-			return request.has(Fields.CHAT_MSG);
+			case Fields.OP_CHAT_MSG:
+				return request.has(Fields.CHAT_MSG);
 
-		default:
-			return true; // no fields needed
+			default:
+				return true; // no fields needed
 		}
 	}
 
@@ -163,23 +166,35 @@ public class ClientHandler implements Runnable {
 	 */
 	private void handleOperation(JSONObject request) {
 		String operation = (String) request.get(Fields.OP);
-		if (!operation.equals(Fields.OP_LOGIN) && (currentUser == null || !currentUser.isOnline())) {
-			sendError("You must be logged to request this operation");
-			return;
-		}
 		out.println("Handling " + operation + " from " + (currentUser == null ? "unknown user" : currentUser.getUsername()));
-		switch (operation) {
-			case Fields.OP_LOGIN:      login(request); break;
-			case Fields.OP_LOGOUT:     logout(); break;
-			case Fields.OP_CREATE_DOC: createDocument(request); break;
-			case Fields.OP_SHOW_DOC:   showDocument(request); break;
-			case Fields.OP_SHOW_SEC:   showSection(request); break;
-			case Fields.OP_EDIT_SEC:   editSection(request); break;
-			case Fields.OP_END_EDIT:   endEdit(request); break;
-			case Fields.OP_INVITE:     invite(request); break;
-			case Fields.OP_LIST:       list(); break;
-			case Fields.OP_CHAT_MSG:   chatMessage(request); break;
-			default: sendError("Unknown operation: " + operation);
+
+		// check the status-operation coherence
+		switch (status) {
+			case NOT_LOGGED:
+				if (Fields.OP_LOGIN.equals(operation)) login(request);
+				else sendError("You must be logged to request this operation: " + operation);
+				break;
+
+			case LOGGED:
+				switch (operation) {
+					case Fields.OP_LOGOUT:     logout(); break;
+					case Fields.OP_CREATE_DOC: createDocument(request); break;
+					case Fields.OP_SHOW_DOC:   showDocument(request); break;
+					case Fields.OP_SHOW_SEC:   showSection(request); break;
+					case Fields.OP_EDIT_SEC:   editSection(request); break;
+					case Fields.OP_INVITE:     invite(request); break;
+					case Fields.OP_LIST:       list(); break;
+					default: sendError("You can't request this operation while logged " +
+							"and not editing any section: " + operation);
+				}
+				break;
+
+			case EDITING:
+				switch (operation) {
+					case Fields.OP_END_EDIT: endEdit(request); break;
+					case Fields.OP_CHAT_MSG: chatMessage(request); break;
+					default: sendError("You can't request this operation while editing: " + operation);
+				}
 		}
 	}
 
@@ -253,6 +268,9 @@ public class ClientHandler implements Runnable {
 			out.println("Wrong password for " + username);
 			return;
 		}
+
+		// user logged
+		status = Status.LOGGED;
 		sendAck();
 		out.println(currentUser.getUsername() + " connected");
 	}
@@ -261,11 +279,7 @@ public class ClientHandler implements Runnable {
 	 * Implements the logout operation
 	 */
 	private void logout() {
-		if (currentUser == null) {
-			sendError("User already logged out");
-			return;
-		}
-
+		// logs out the user
 		try {
 			currentUser.setOnline(false);
 		} catch (AlreadyLoggedException e) {
@@ -282,10 +296,11 @@ public class ClientHandler implements Runnable {
 				System.err.println("Disk error: " + e.getMessage()); // disk error
 			}
 		}
-		sendAck();
+		status = Status.NOT_LOGGED;
 		currentUser.setEditingSection(null);
 		currentUser.setNotifier(null);
 		currentUser = null;
+		sendAck();
 	}
 
 	/**
@@ -390,11 +405,6 @@ public class ClientHandler implements Runnable {
 	 * @param request the client request
 	 */
 	private void editSection(JSONObject request) {
-		if (currentUser.getEditingSection() != null) {
-			sendError("You're already editing a section");
-			return;
-		}
-
 		// parsing request
 		String docName    = (String)  request.get(Fields.DOC_NAME);
 		String creator    = (String)  request.get(Fields.DOC_CREATOR);
@@ -414,6 +424,7 @@ public class ClientHandler implements Runnable {
 
 		// check if section is unlocked
 		if (section.startEdit(currentUser)) {
+			status = Status.EDITING;
 			currentUser.setEditingSection(section); // lock user
 
 			// send section content
@@ -443,12 +454,6 @@ public class ClientHandler implements Runnable {
 	private void endEdit(JSONObject request) {
 		Section section = currentUser.getEditingSection();
 
-		// user isn't editing any section
-		if (section == null) {
-			sendError("You're not editing any section");
-			return;
-		}
-
 		// new section content
 		String content = request.has(Fields.SEC_CONTENT) ? (String) request.get(Fields.SEC_CONTENT) : null;
 
@@ -458,6 +463,7 @@ public class ClientHandler implements Runnable {
 		} catch (IOException e) {
 			sendError(e.getMessage());
 		}
+		status = Status.LOGGED;
 		currentUser.setEditingSection(null); // unlock user
 		sendAck();
 	}
@@ -570,12 +576,6 @@ public class ClientHandler implements Runnable {
 	 */
 	private void chatMessage(JSONObject request) {
 		Section section = currentUser.getEditingSection();
-
-		// user isn't editing any section
-		if (section == null) {
-			sendError("You have to edit a section before using the chat");
-			return;
-		}
 
 		// sending chat message
 		String message = (String) request.get(Fields.CHAT_MSG);
