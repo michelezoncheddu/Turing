@@ -19,12 +19,18 @@ import static java.lang.System.out;
  * A thread that implements the operations of a individual client
  */
 public class ClientHandler implements Runnable {
-	private enum Status {NOT_LOGGED, LOGGED, EDITING} // possibile status
+
+	// possibile client status
+	private enum Status {
+		LOGGED_OUT, // not logged yet
+		LOGGED_IN,  // logged in but not editing
+		EDITING     // logged in and editing
+	}
 
 	private Socket clientConnection;           // connection with the client
 	private BufferedWriter writer;             // output stream with the client
 	private User currentUser = null;           // currently logged user
-	private Status status = Status.NOT_LOGGED; // current user status
+	private Status status = Status.LOGGED_OUT; // current user status
 
 	private static boolean stop = false;       // all-threads stop flag
 
@@ -170,12 +176,12 @@ public class ClientHandler implements Runnable {
 
 		// check the status-operation coherence
 		switch (status) {
-			case NOT_LOGGED:
+			case LOGGED_OUT:
 				if (Fields.OP_LOGIN.equals(operation)) login(request);
 				else sendError("You must be logged to request this operation: " + operation);
 				break;
 
-			case LOGGED:
+			case LOGGED_IN:
 				switch (operation) {
 					case Fields.OP_LOGOUT:     logout(); break;
 					case Fields.OP_CREATE_DOC: createDocument(request); break;
@@ -270,7 +276,7 @@ public class ClientHandler implements Runnable {
 		}
 
 		// user logged
-		status = Status.LOGGED;
+		status = Status.LOGGED_IN;
 		sendAck();
 		out.println(currentUser.getUsername() + " connected");
 	}
@@ -296,7 +302,7 @@ public class ClientHandler implements Runnable {
 				System.err.println("Disk error: " + e.getMessage()); // disk error
 			}
 		}
-		status = Status.NOT_LOGGED;
+		status = Status.LOGGED_OUT;
 		currentUser.setEditingSection(null);
 		currentUser.setNotifier(null);
 		currentUser = null;
@@ -463,7 +469,7 @@ public class ClientHandler implements Runnable {
 		} catch (IOException e) {
 			sendError(e.getMessage());
 		}
-		status = Status.LOGGED;
+		status = Status.LOGGED_IN;
 		currentUser.setEditingSection(null); // unlock user
 		sendAck();
 	}
