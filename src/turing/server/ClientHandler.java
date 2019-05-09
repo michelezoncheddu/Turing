@@ -285,6 +285,9 @@ public class ClientHandler implements Runnable {
 	 * Implements the logout operation
 	 */
 	private void logout() {
+		if (currentUser == null) // user not logged
+			return;
+
 		// logs out the user
 		try {
 			currentUser.setOnline(false);
