@@ -1,12 +1,16 @@
-
 \section{Scelte progettuali}
 Di seguito verranno illustrate le più importanti scelte progettuali effettuate durante la realizzazione del progetto.
 
-\subsection{Strutture dati utilizzate}
-Le principali strutture dati utilizzate sono:
+\subsection{Architettura}
+\sloppy
+Per l'architettura del server erano possibili principalmente due soluzioni, che sono state trattate più in dettaglio durante il Laboratorio di Reti di Calcolatori:
 \begin{itemize}
-	\item coda concorrente (per il dispatch delle richieste);
-	\item tabella hash concorrente (per utenti e gruppi);
-	\item array circolare (per la history di ogni utente);
-	\item array concorrenti:
+	\item multithread sincrona con I/O bloccante (\texttt{Sockets} di \texttt{Java IO});
+	\item monothread sincrona con I/O non bloccante (\texttt{Selectors} di \texttt{Java NIO}).
 \end{itemize}
+È stata scelta la prima per i seguenti motivi:
+\begin{itemize}
+	\item + speed;
+\end{itemize}
+
+\subsection{Strutture dati utilizzate / gestori}
