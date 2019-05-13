@@ -40,10 +40,9 @@ public class Server implements Runnable {
 	static final String NOTIFICATION_OBJECT = "not";
 
 	// global managers
-	static final UserManager               userManager         = new UserManager();
-	static final DocumentManager           documentManager     = new DocumentManager();
-	static final AddressManager            addressManager      = new AddressManager();
-	static final ServerNotificationManager notificationManager = new ServerNotificationManager();
+	static final UserManager     userManager     = new UserManager();
+	static final DocumentManager documentManager = new DocumentManager();
+	static final AddressManager  addressManager  = new AddressManager();
 
 	/**
 	 * Creates a new server
@@ -57,6 +56,8 @@ public class Server implements Runnable {
 	 */
 	@Override
 	public void run() {
+		ServerNotificationManager notificationManager = new ServerNotificationManager();
+
 		// exporting managers
 		try {
 			exportObjects(userManager, notificationManager);

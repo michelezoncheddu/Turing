@@ -14,6 +14,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * Implements a concurrent user manager
  */
 public class UserManager extends RemoteServer implements UserManagerAPI {
+	/**
+	 * Key: username
+	 */
 	private Map<String, User> users = new ConcurrentHashMap<>();
 
 	/**

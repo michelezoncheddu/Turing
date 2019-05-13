@@ -8,8 +8,8 @@ import java.util.TreeSet;
  * Implements a concurrent multicast address manager
  */
 public class AddressManager {
-	private TreeSet<InetAddress> addresses = new TreeSet<>(new InetAddressComparator());
-	private int c = 0, b = 0, a = 0; // address part
+	private TreeSet<InetAddress> addresses = new TreeSet<>(new InetAddressComparator()); // set of addresses
+	private int c = 0, b = 0, a = 0; // address parts
 
 	/**
 	 * Creates a new address manager

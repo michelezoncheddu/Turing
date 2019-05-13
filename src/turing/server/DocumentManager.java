@@ -11,6 +11,11 @@ import java.util.Map;
  * Implements a concurrent document manager
  */
 public class DocumentManager {
+	/**
+	 * Key: string "username" + "document name"
+	 *
+	 * NOTE: no need of ConcurrentHashMap, locks are in the sections
+	 */
 	private Map<String, Document> documents = new HashMap<>();
 
 	/**
