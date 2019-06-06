@@ -10,6 +10,7 @@ import java.util.TreeSet;
 public class AddressManager {
 	private TreeSet<InetAddress> addresses = new TreeSet<>(new InetAddressComparator()); // set of addresses
 	private int c = 0, b = 0, a = 0; // address parts
+	private int maxAddresses = Math.pow(256, 3); // number of addresses from 239.0.0.0 to 239.255.255.255
 
 	/**
 	 * Creates a new address manager
@@ -28,7 +29,7 @@ public class AddressManager {
 		InetAddress address;
 
 		// search for a free address
-		for (long i = 0; i < Math.pow(256, 3); i++, nextAddress()) {
+		for (long i = 0; i < maxAddresses; i++, nextAddress()) {
 			try {
 				// 239.0.0.0 - 239.255.255.255 Organization-Local Scope
 				address = InetAddress.getByName("239." + c + "." + b + "." + a);
