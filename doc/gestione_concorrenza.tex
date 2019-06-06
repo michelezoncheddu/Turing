@@ -1,0 +1,21 @@
+\section{Gestione della concorrenza}
+I thread sono gestiti da un \textbf{cached thread pool}, scelto per la sua elasticità nella gestione delle risorse; sono inoltre indipendenti ed isolati, e per ogni richiesta esterna devono utilizzare uno dei seguenti manager:
+
+\begin{itemize}
+	\item \texttt{userManager}: gestisce concorrentemente gli utenti registrati;
+	\item \texttt{documentManager}: gestisce concorrentemente i documenti salvati;
+	\item \texttt{addressManager}: gestisce concorrentemente gli indirizzi IP multicast da assegnare alle chat dei gruppi di lavoro.
+\end{itemize}
+
+\subsection{\texttt{userManager}}
+È il nucleo del servizio di autenticazione di \texttt{TURING}, ed è implementato da una tabella hash concorrente (chiave: username).
+
+Viene utilizzato dal server come manager locale per il login e per i controlli di sicurezza delle operazioni; inoltre viene utilizzato dai client come manager remoto per la registrazione, invocando i metodi esposti da una API.
+
+\subsection{\texttt{documentManager}}
+Implementato da una tabella hash non concorrente\footnote{In questo caso la corretta gestione della concorrenza non è garantita da una struttura dati concorrente, ma dalle locks delle sezioni, in quanto hanno una granularità più fine.} (chiave: username concatenato con il nome del documento), gestisce la creazione, la modifica e l'insieme degli utenti autorizzati alla modifica.
+
+\subsection{\texttt{addressManager}}
+Per assegnare e rilasciare su richiesta gli indirizzi multicast per le chat dei documenti, ho utilizzato un \textit{TreeSet} con un comparatore apposito per indirizzi IP, in quanto la classe \textit{InetAddress} non è nativamente comparabile in Java.
+
+Viene riservato un indirizzo da 239.0.0.0 a 239.255.255.255\footnote{Organization-Local Scope. Fonte: IANA.} non appena un utente inizia a modificare una sezione di un documento, e liberato quando l'ultimo utente termina la modifica del documento.
