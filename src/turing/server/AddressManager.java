@@ -10,7 +10,7 @@ import java.util.TreeSet;
 public class AddressManager {
 	private TreeSet<InetAddress> addresses = new TreeSet<>(new InetAddressComparator()); // set of addresses
 	private int c = 0, b = 0, a = 0; // address parts
-	private int maxAddresses = Math.pow(256, 3); // number of addresses from 239.0.0.0 to 239.255.255.255
+	private double maxAddresses = Math.pow(256, 3); // number of addresses from 239.0.0.0 to 239.255.255.255
 
 	/**
 	 * Creates a new address manager
