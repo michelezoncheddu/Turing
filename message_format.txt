@@ -1,0 +1,62 @@
+// Operation format dependencies:
+OP:
+	OP_LOGIN:
+		USERNAME, PASSWORD
+
+	OP_CREATE_DOC:
+		DOC_NAME, SECTIONS
+
+	OP_SHOW_DOC:
+		DOC_NAME, DOC_CREATOR
+
+	OP_SHOW_SEC:
+		DOC_NAME, DOC_CREATOR, DOC_SECTION
+
+	OP_EDIT_SEC:
+		DOC_CREATOR, DOC_NAME, DOC_SECTION
+
+	OP_INVITE:
+		USERNAME, DOC_CREATOR, DOC_NAME
+
+	OP_CHAT_MSG:
+		CHAT_MSG
+
+// Where operations are
+OP              = "o";
+OP_LOGIN        = "o_0";
+OP_LOGOUT       = "o_1";
+OP_CREATE_DOC   = "o_2";
+OP_SHOW_DOC     = "o_3";
+OP_SHOW_SEC     = "o_4";
+OP_EDIT_SEC     = "o_5";
+OP_END_EDIT     = "o_6";
+OP_LIST         = "o_7";
+OP_CHAT_MSG     = "o_8";
+OP_INVITE       = "o_9";
+
+// and return statuses are
+STATUS          = "s";
+STATUS_OK       = "s_0";
+STATUS_ERR      = "s_1";
+
+// and fields are
+USERNAME        = "f_0";
+PASSWORD        = "f_1";
+DOCS            = "f_2";
+DOC_NAME        = "f_3";
+DOC_CREATOR     = "f_4";
+DOC_SECTION     = "f_5";
+SECTIONS        = "f_6";
+SEC_CONTENT     = "f_7";
+DOC_CONTENT     = "f_8";
+IS_SHARED       = "f_9";
+CHAT_ADDR       = "f_10";
+CHAT_MSG        = "f_11";
+ERR_MSG         = "f_12";
+
+// Example: create document named "test_document" with 12 sections
+{
+	"o": "o_2",
+	"f_3": "test_document",
+	"f_6": 12
+}
