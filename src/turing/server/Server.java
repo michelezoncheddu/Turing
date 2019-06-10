@@ -3,8 +3,7 @@ package turing.server;
 import turing.ServerNotificationManagerAPI;
 import turing.UserManagerAPI;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Files;
@@ -15,6 +14,7 @@ import java.rmi.RemoteException;
 import java.rmi.registry.*;
 import java.rmi.server.*;
 import java.util.Comparator;
+import java.util.Properties;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -25,19 +25,20 @@ import static java.lang.System.out;
  * Implements the turing server
  */
 public class Server implements Runnable {
-	static final String DOCS_ROOT      = "data"; // documents folder
-	static final int    DEFAULT_PORT   = 1100;   // server socket port
-	static final int    CHAT_PORT      = 1101;   // multicast port
-	static final int    RMI_PORT       = 1099;   // Java RMI port
-	static final int    MTU            = 1500;   // Ethernet MTU
+	static final String DOCS_ROOT = "data"; // documents folder
 
-	static final int    MAX_SECTIONS   = 1024;   // max number of sections for a document
+	static int DEFAULT_PORT   = 1100;   // server socket port
+	static int CHAT_PORT      = 1101;   // multicast port
+	static int RMI_PORT       = 1099;   // Java RMI port
+	static int MTU            = 1500;   // Ethernet MTU
 
-	static final int    TIMEOUT_MILLIS = 1000;   // handler thread timeout
+	static int MAX_SECTIONS   = 1024;   // max number of sections for a document
+
+	static int TIMEOUT_MILLIS = 1000;   // handler thread timeout
 
 	// Java RMI objects name
-	static final String REGISTRATION_OBJECT = "reg";
-	static final String NOTIFICATION_OBJECT = "not";
+	static String REGISTRATION_OBJECT = "reg";
+	static String NOTIFICATION_OBJECT = "not";
 
 	// global managers
 	static final UserManager     userManager     = new UserManager();
@@ -132,6 +133,39 @@ public class Server implements Runnable {
 	}
 
 	/**
+	 * Loads the configuration file
+	 *
+	 * @param fileName the configuration file name
+	 */
+	private static void loadConfiguration(String fileName) {
+		out.println("Loading configuration file: " + fileName);
+		Properties prop = new Properties();
+		InputStream is;
+		try {
+			is = new FileInputStream(fileName);
+			prop.load(is);
+		} catch (NullPointerException | IOException e) {
+			System.err.println("Cannot find configuration file: " + e.getMessage());
+			System.out.println("Loading default configuration");
+			return;
+		}
+
+		try {
+			DEFAULT_PORT   = Integer.parseInt(prop.getProperty("DEFAULT_PORT"));
+			CHAT_PORT      = Integer.parseInt(prop.getProperty("CHAT_PORT"));
+			RMI_PORT       = Integer.parseInt(prop.getProperty("RMI_PORT"));
+			MTU            = Integer.parseInt(prop.getProperty("MTU"));
+			MAX_SECTIONS   = Integer.parseInt(prop.getProperty("MAX_SECTIONS"));
+			TIMEOUT_MILLIS = Integer.parseInt(prop.getProperty("TIMEOUT_MILLIS"));
+		} catch (NumberFormatException e) {
+			System.err.println("Bad configuration file format: " + e.getMessage());
+		}
+
+		REGISTRATION_OBJECT = prop.getProperty("REGISTRATION_OBJECT", REGISTRATION_OBJECT);
+		NOTIFICATION_OBJECT = prop.getProperty("NOTIFICATION_OBJECT", NOTIFICATION_OBJECT);
+	}
+
+	/**
 	 * Exports the remote objects
 	 *
 	 * @param userManager         the user manager to export
@@ -161,6 +195,8 @@ public class Server implements Runnable {
 	 * @param args the server arguments
 	 */
 	public static void main(String[] args) {
+		if (args.length > 0)
+			loadConfiguration(args[0]);
 		new Thread(new Server()).start();
 	}
 }
