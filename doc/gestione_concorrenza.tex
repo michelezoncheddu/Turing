@@ -1,5 +1,10 @@
 \section{Gestione della concorrenza}
-I thread sono gestiti da un \textbf{cached thread pool}, scelto per la sua elasticità nella gestione delle risorse; sono inoltre indipendenti ed isolati, e per ogni richiesta esterna devono utilizzare uno dei seguenti manager:
+I thread sono gestiti da un \textbf{cached thread pool}, scelto per la sua elasticità nella gestione delle risorse.\\
+\textbf{Nota}: se si suppone che il server venga mandato in esecuzione su una macchina dedicata, il cached thread pool risulta comunque una soluzione migliore del fixed thread pool, che potrebbe mantenere inattivi tantissimi thread.
+
+\medskip
+
+I thread sono inoltre indipendenti ed isolati, e per ogni richiesta esterna devono utilizzare uno dei seguenti manager:
 
 \begin{itemize}
 	\item \texttt{userManager}: gestisce concorrentemente gli utenti registrati;
