@@ -23,8 +23,8 @@ public class ClientHandler implements Runnable {
 	// possibile client status
 	private enum Status {
 		LOGGED_OUT, // not logged yet
-		LOGGED_IN,  // logged in but not editing
-		EDITING     // logged in and editing
+		LOGGED_IN,  // logged but not editing
+		EDITING     // logged and editing
 	}
 
 	private Socket clientConnection;           // connection with the client
