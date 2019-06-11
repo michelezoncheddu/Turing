@@ -36,8 +36,8 @@ public class ClientGUI extends JFrame {
 	 */
 	public ClientGUI() {
 		// load shared icon
-		sharedIcon = new ImageIcon("../icons/shared_icon.png");
-		notSharedIcon = new ImageIcon("../icons/not_shared_icon.png");
+		sharedIcon = new ImageIcon("icons/shared_icon.png");
+		notSharedIcon = new ImageIcon("icons/not_shared_icon.png");
 		sharedIcon = new ImageIcon(sharedIcon.getImage().getScaledInstance(
 				16, 16, java.awt.Image.SCALE_SMOOTH));
 		notSharedIcon = new ImageIcon(notSharedIcon.getImage().getScaledInstance(
