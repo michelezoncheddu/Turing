@@ -1,0 +1,39 @@
+\section{Descrizione delle classi}
+Di seguito una breve descrizione delle classi, suddivise per package. Per approfondire, vedere il Javadoc alla pagina \texttt{index.html} nella cartella \texttt{doc/javadoc/}.
+
+\subsection{Classi condivise}
+\begin{itemize}
+	\item \texttt{Fields}, per i valori dei campi dei messaggi JSON;
+	\item \texttt{UserManagerAPI}, per la registrazione degli utenti;
+	\item \texttt{ClientNotificationManagerAPI}, \texttt{ServerNotificationManagerAPI}, per l'invio delle notifiche.
+\end{itemize}
+
+\subsection{Classi del server}
+Oltre ai tre manager e al confrontatore di indirizzi IP, troviamo le classi:
+\begin{itemize}
+	\item \texttt{Server}, la classe principale che lo inizializza (caricando l'eventuale file di configurazione) e gestisce il dispatch delle connessioni;
+	\item \texttt{ClientHandler}, worker che gestisce le connessioni con gli utenti;
+	\item \texttt{User}, per memorizzare i dati degli utenti, come password, documenti di proprietà, documenti che è possibile modificare e notifiche pendenti;
+	\item \texttt{Document}, per memorizzare tutti i metadati dei documenti, come creatore, utenti ammessi alla modifica e indirizzo della chat di lavoro;
+	\item \texttt{Section}, per interagire con la singola sezione del documento, permettendo la modifica da al più un utente alla volta, e leggendo e scrivendo sul disco.
+\end{itemize}
+
+\subsubsection{Eccezioni}
+\begin{itemize}
+	\item \texttt{AlreadyLoggedException}, se l'utente è già loggato;
+	\item \texttt{InexistentDocumentException}, se il documento cercato non esiste;
+	\item \texttt{InexistentUserException}, se l'utente cercato non esiste;
+	\item \texttt{PreExistentDocumentException}, se il documento che si vuole creare esiste già;
+	\item \texttt{UserNotAllowedException}, se l'utente non è autorizzato ad interagire col documento.
+\end{itemize}
+
+\subsection{Classi del client}
+\begin{itemize}
+	\item \texttt{ChatListener}, un thread dedicato per la ricezione dei messaggi della chat, creato e distrutto all'occorrenza;
+	\item \texttt{Client}, la classe principale: carica l'eventuale file di configurazione e fa partire il thread per l'interfaccia grafica con il metodo \texttt{invokeLater};
+	\item \texttt{ClientGUI}, la classe che si occupa della creazione e della gestione dell'interfaccia grafica;
+	\item \texttt{ClientNotificationManager}, per registrarsi al servizio di notifiche;
+	\item \texttt{Connection}, per implementare il protocollo request/reply;
+	\item \texttt{Document}, rappresenta una versione minimale del documento salvato sul server;
+	\item \texttt{Operation}, per implementare la logica del client.
+\end{itemize}

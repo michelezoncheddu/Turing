@@ -262,20 +262,31 @@ public class ClientHandler implements Runnable {
 		String username = (String) request.get(Fields.USERNAME);
 		String password = (String) request.get(Fields.PASSWORD);
 
-		// try to log user
+		// get user
+		User user;
 		try {
-			currentUser = Server.userManager.logIn(username, password);
-		} catch (InexistentUserException | AlreadyLoggedException e) {
+			user = Server.userManager.get(username);
+		} catch (InexistentUserException e) {
 			sendError(e.getMessage());
 			return;
 		}
-		if (currentUser == null) { // wrong passord
+
+		// try to log user
+		if (user.getPassword().equals(password)) {
+			try {
+				user.setOnline(true); // setOnline is thread safe
+			} catch (AlreadyLoggedException e) {
+				sendError(e.getMessage());
+				return;
+			}
+		} else { // wrong passord
 			sendError("Wrong password for " + username);
 			out.println("Wrong password for " + username);
 			return;
 		}
 
 		// user logged
+		currentUser = user;
 		status = Status.LOGGED_IN;
 		sendAck();
 		out.println(currentUser.getUsername() + " connected");
@@ -504,11 +515,14 @@ public class ClientHandler implements Runnable {
 		}
 
 		// get the user to invite
-		User user = Server.userManager.get(username);
-		if (user == null) {
-			sendError(username + " inexistent");
+		User user;
+		try {
+			user = Server.userManager.get(username);
+		} catch (InexistentUserException e) {
+			sendError(e.getMessage());
 			return;
-		} else if (user == currentUser) {
+		}
+		if (user == currentUser) {
 			sendError("You cannot invite yourself");
 			return;
 		}
@@ -607,7 +621,7 @@ public class ClientHandler implements Runnable {
 	private Document getDocument(String docName, String creator) {
 		Document document;
 		try {
-			document = Server.documentManager.getAsGuest(
+			document = Server.documentManager.getAsCollaborator(
 					currentUser, Server.documentManager.makeKey(creator, docName));
 		} catch (UserNotAllowedException e) {
 			sendError(e.getMessage());

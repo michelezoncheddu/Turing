@@ -2,6 +2,7 @@ package turing.server;
 
 import turing.ClientNotificationManagerAPI;
 import turing.ServerNotificationManagerAPI;
+import turing.server.exceptions.InexistentUserException;
 
 import java.rmi.RemoteException;
 
@@ -32,9 +33,14 @@ public class ServerNotificationManager implements ServerNotificationManagerAPI {
 		if (username == null || password == null || notifier == null)
 			throw new NullPointerException("Username, password and notifier must not be null");
 
-		User user = Server.userManager.get(username);
+		User user;
+		try {
+			user = Server.userManager.get(username);
+		} catch (InexistentUserException e) {
+			return;
+		}
 
-		if (user != null && user.isOnline() && user.getPassword().equals(password)) {
+		if (user.isOnline() && user.getPassword().equals(password)) {
 			user.setNotifier(notifier);
 			user.flushPendingNotifications();
 		}

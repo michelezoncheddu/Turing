@@ -15,12 +15,20 @@ I thread sono inoltre indipendenti ed isolati, e per ogni richiesta esterna devo
 \subsection{\texttt{userManager}}
 È il nucleo del servizio di autenticazione di \texttt{TURING}, ed è implementato da una tabella hash concorrente (chiave: username).
 
-Viene utilizzato dal server come manager locale per il login e per i controlli di sicurezza delle operazioni; inoltre viene utilizzato dai client come manager remoto per la registrazione, invocando i metodi esposti da una API.
+Viene utilizzato dal server come manager locale nel il server per il login e per i controlli di sicurezza delle operazioni, e dai client come manager remoto per la registrazione.
+
+\paragraph{Funzionamento}
+Ogni nuovo utente registrato viene inserito all'interno della tabella tramite il metodo \texttt{signUp}, e recuperato col metodo \texttt{get}.
+I client interagiscono col manager invocando i metodi esposti da una API.
 
 \subsection{\texttt{documentManager}}
 Implementato da una tabella hash non concorrente\footnote{In questo caso la corretta gestione della concorrenza non è garantita da una struttura dati concorrente, ma dalle locks delle sezioni, in quanto hanno una granularità più fine.} (chiave: username concatenato con il nome del documento), gestisce la creazione, la modifica e l'insieme degli utenti autorizzati alla modifica.
 
-\subsection{\texttt{addressManager}}
-Per assegnare e rilasciare su richiesta gli indirizzi multicast per le chat dei documenti, ho utilizzato un \textit{TreeSet} con un comparatore apposito per indirizzi IP, in quanto la classe \textit{InetAddress} non è nativamente comparabile in Java.
+\paragraph{Funzionamento}
+I documenti vengono aggiunti col metodo \texttt{put} e recuperati con due metodi get: uno per il creatore del documento (per permettere la condivisione), e uno per i collaboratori, (limitati alla modifica delle sezioni).
 
-Viene riservato un indirizzo da 239.0.0.0 a 239.255.255.255\footnote{Organization-Local Scope. Fonte: IANA.} non appena un utente inizia a modificare una sezione di un documento, e liberato quando l'ultimo utente termina la modifica del documento.
+\subsection{\texttt{addressManager}}
+Per assegnare e rilasciare su richiesta gli indirizzi multicast per le chat dei documenti, è stato utilizzato un \texttt{TreeSet} con un comparatore apposito per indirizzi IP, in quanto la classe \texttt{InetAddress} non è nativamente comparabile in Java. Viene interrogato tramite metodi \texttt{synchronized}.
+
+\paragraph{Funzionamento}
+Al manager viene richiesto di riservare un indirizzo multicast (da 239.0.0.0 a 239.255.255.255\footnote{Organization-Local Scope. Fonte: IANA.}) non appena un utente inizia a modificare una sezione di un documento: l'indirizzo viene quindi inserito nell'albero, ad indicare che è correntemente in uso. Infine viene richiesta la liberazione dell'indizzo quando l'ultimo utente termina la modifica del documento.

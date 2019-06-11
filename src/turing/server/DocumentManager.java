@@ -45,7 +45,7 @@ public class DocumentManager {
 	 * @throws UserNotAllowedException     if the user is not allowed to get the document
 	 * @throws InexistentDocumentException if the document doesn't exist
 	 */
-	public Document getAsGuest(User user, String docKey)
+	public Document getAsCollaborator(User user, String docKey)
 			throws UserNotAllowedException, InexistentDocumentException {
 		Document document = get(docKey);
 

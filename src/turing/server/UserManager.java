@@ -51,39 +51,19 @@ public class UserManager extends RemoteServer implements UserManagerAPI {
 	}
 
 	/**
-	 * Logs in an user
-	 *
-	 * @param username the user username
-	 * @param password the user password
-	 *
-	 * @return the user, if has been possible to perform the log in
-	 *         null if the password was wrong
-	 *
-	 * @throws InexistentUserException if the user doesn't exist
-	 * @throws AlreadyLoggedException  if the user is already logged
-	 */
-	public User logIn(String username, String password) throws InexistentUserException, AlreadyLoggedException {
-		User user = users.get(username);
-		if (user == null) // inexistent user
-			throw new InexistentUserException("Inexistent user: " + username);
-
-		if (user.getPassword().equals(password)) {
-			user.setOnline(true); // setOnline is thread safe
-			return user;
-		}
-
-		return null; // wrong password
-	}
-
-	/**
 	 * Returns an user
 	 *
 	 * @param username the user username
 	 *
-	 * @return the user with that username, if exists
-	 *         null otherwise
+	 * @return the user with that username
+	 *
+	 * @throws InexistentUserException if the user doesn't exist
 	 */
-	public User get(String username) {
-		return users.get(username);
+	public User get(String username) throws InexistentUserException {
+		User user = users.get(username);
+		if (user == null) // inexistent user
+			throw new InexistentUserException("Inexistent user: " + username);
+
+		return user;
 	}
 }

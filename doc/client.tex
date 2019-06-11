@@ -1,7 +1,7 @@
 \subsection{Client}
 
 \subsubsection{Architettura}
-L'architettura del client è più semplice: effettua richieste in formato JSON e resta in attesa di una risposta. Il thread grafico è aggiornato all'occorrenza dal metodo \textit{invokeLater}. Durante la normale esecuzione, il client è single threaded; viene generato al bisogno un thread per la ricezione di messaggi multicast, durante la modifica di un documento.
+L'architettura del client è più semplice: effettua richieste in formato JSON e resta in attesa di una risposta. Il thread grafico è aggiornato all'occorrenza dal metodo \texttt{invokeLater}. Durante la normale esecuzione, il client è single threaded; viene generato al bisogno un thread per la ricezione di messaggi multicast, durante la modifica di un documento.
 
 \medskip
 
