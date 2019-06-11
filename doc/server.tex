@@ -30,9 +30,7 @@ Per ogni client che si connette, il server riserva un thread, che si occuperà d
 
 L'\textbf{automa a stati} del client di \texttt{TURING} è stato implementato con tre stati interni ad ogni client handler, perché non si può fare affidamento sulla buona scrittura del client.
 \medskip \\
-L'invio di messaggi \textbf{multicast} viene effettuato tramite un \texttt{datagramChannel} che viene aperto quando c'è almeno un utente che sta modificando il documento, e chiuso quando nessuno lo sta più modificando.
-
-\newpage
+L'invio di messaggi \textbf{multicast} viene effettuato tramite un \texttt{datagramChannel} col \textbf{TTL} settato a 1, che viene aperto quando c'è almeno un utente che sta modificando il documento, e chiuso quando nessuno lo sta più modificando.
 
 \begin{center}
 	\begin{figure}[ht!]
@@ -40,6 +38,8 @@ L'invio di messaggi \textbf{multicast} viene effettuato tramite un \texttt{datag
 		\caption{Architettura di \texttt{TURING} e interazioni tra le varie componenti.}
 	\end{figure}
 \end{center}
+
+\newpage
 
 \subsubsection{Strutture dati}
 Le principali strutture dati utilizzate sono tabelle hash (per gli utenti e per i documenti) e alberi (per gli indirizzi). Verranno approfondite nella sezione di gestione della concorrenza.
@@ -66,7 +66,7 @@ I documenti vengono salvati come file di testo codificati nello standard \texttt
 	.4 2.
 	.4 3.
 	.2 Dante Alighieri/.
-	.3 Divina Commedia/.
+	.3 Comedia/.
 	.4 1.
 	.4 2.
 	.4 \dots.

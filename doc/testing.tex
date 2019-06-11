@@ -1,2 +1,17 @@
 \section{Testing}
+Il progetto è stato testato con successo sulle seguenti configurazioni:
+\begin{itemize}
+	\item MacOS 10.14 su \texttt{Intel Core i5-5257U};
+	\item Ubuntu 16.04 e Windows 10 su \texttt{Intel Core i7-2670QM};
+	\item Ubuntu 18.04 su \texttt{Intel Core i5-7400}.
+\end{itemize}
 
+Durante i test sono state riprodotte le condizioni più critiche, per esempio:
+\begin{itemize}
+	\item tentativi di modifica simultanea della stessa sezione;
+	\item tentativi di condivisione non autorizzati;
+	\item modifica di una sezione con crash improvviso del client e successiva modifica da parte di un altro utente;
+	\item invio delle notifiche in real time e delle notifiche pendenti.
+\end{itemize}
+
+Il server è stato testato anche su un VPS cloud, con gli stessi risultati. L'unica funzione mancante è ovviamente la chat, per via del TTL impostato ad 1 e degli indirizzi multicast locali.
