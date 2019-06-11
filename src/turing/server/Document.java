@@ -202,6 +202,7 @@ public class Document {
 			NetworkInterface networkInterface = NetworkInterface.getByInetAddress(InetAddress.getByName("localhost"));
 			channel = DatagramChannel.open();
 			channel.setOption(StandardSocketOptions.IP_MULTICAST_IF, networkInterface);
+			channel.setOption(StandardSocketOptions.IP_MULTICAST_TTL, 1);
 		} catch (IOException e) {
 			System.err.println("Cannot create chat channel: " + e.getMessage()); // chat unavailable
 		}
