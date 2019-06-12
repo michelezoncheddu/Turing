@@ -6,7 +6,7 @@ Di seguito verranno illustrate le principali scelte progettuali effettuate duran
 \input{client.tex}
 
 \subsection{Comunicazione client-server}
-Per la comunicazione client-server è stata adottata una tecnica a scambio di messaggi sincrona. I messaggi sono in formato JSON, e vengono inviati attraverso una connessione TCP. La scelta del formato JSON al posto degli oggetti Java serializzati può permettere in un futuro momento di scrivere client per \texttt{TURING} in qualsiasi linguaggio di programmazione\footnote{A patto di modificare leggermente la parte di registrazione di un nuovo utente, che è stata richiesta esplicitamente in Java RMI.}.
+Per la comunicazione client-server è stata adottata una tecnica a scambio di messaggi sincrona. I messaggi sono in formato JSON, e vengono inviati attraverso una connessione TCP. La scelta del formato JSON al posto degli oggetti Java serializzati permette una \textbf{maggiore interoperabilità}, consentendo in un futuro momento di scrivere client per \texttt{TURING} in qualsiasi linguaggio di programmazione\footnote{A patto di modificare la parte di registrazione utente, che è stata richiesta esplicitamente in Java RMI.}.
 
 \medskip
 

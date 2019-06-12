@@ -1,12 +1,43 @@
 \section{Manuale d'uso}
-Per compilare il progetto, eseguire lo script \texttt{build.sh}, che si occuperà di scaricare la libreria JSON e di compilare il client e il server.
+\textbf{Importante:} per la compilazione è richiesto \textbf{Java 11} o superiore.
 
-\medskip
+\subsection{Linux e MacOS}
 
+\paragraph{Compilazione}
+Eseguire lo script \texttt{build.sh}, che si occuperà di scaricare la libreria JSON e di compilare il client e il server.
+
+\paragraph{Esecuzione}
 Per eseguire il server e il client, eseguire gli script \texttt{run\_server.sh} e \texttt{run\_client.sh}. Se si vuole avviare il server o il client con una configurazione diversa da quella standard, passare il file di configurazione come parametro. \\
 \textbf{Esempio}: \texttt{./run\_server.sh config/server.conf}
 
-\medskip
+\subsection{Windows}
 
-L'intera storia del progetto è consultabile all'indirizzo: \\
+\paragraph{Compilazione}
+Per compilare il server eseguire il comando dalla cartella \texttt{Turing}:
+
+\begin{verbatim}
+javac
+  -sourcepath src/
+  -classpath lib/<nome della libreria>
+  src/turing/server/*.java 
+  -d <cartella di output>
+\end{verbatim}
+Per il client sostituire \texttt{server/*.java} con \texttt{client/*.java}.
+
+\paragraph{Esecuzione}
+Sempre dalla cartella \texttt{Turing}, eseguire:
+
+\begin{verbatim}
+java
+  -classpath <cartella di output>;lib/<nome della libreria>
+  -Djava.net.preferIPv4Stack=true
+  turing.server.Server <eventuale file di configurazione>
+\end{verbatim}
+Per il client sostituire \texttt{server.Server} con \texttt{client.Client}.
+\medskip \\
+\textbf{Importante}: Per separare le cartelle argomento di \texttt{classpath}, su Windows è necessario il punto e virgola, mentre su Linux e su MacOS i due punti.
+
+\subsection{Storia delle versioni}
+Codice sorgente sotto licenza MIT. \\
+L'intera storia delle versioni è consultabile all'indirizzo: \\
 \href{https://github.com/michelezoncheddu/Turing}{\texttt{github.com/michelezoncheddu/Turing}}.

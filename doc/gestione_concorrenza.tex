@@ -1,6 +1,11 @@
 \section{Gestione della concorrenza}
-I thread sono gestiti da un \textbf{cached thread pool}, scelto per la sua elasticità nella gestione delle risorse.\\
-\textbf{Nota}: se si suppone che il server venga mandato in esecuzione su una macchina dedicata, il cached thread pool risulta comunque una soluzione migliore del fixed thread pool, che potrebbe mantenere inattivi tantissimi thread.
+I thread sono gestiti da un \textbf{cached thread pool}, scelto per la sua elasticità nella gestione delle risorse. \\
+\textbf{Nota}: se si suppone che il server venga mandato in esecuzione su una macchina dedicata, il cached thread pool risulta comunque una soluzione migliore del fixed thread pool, infatti:
+
+\begin{itemize}
+	\item per un numero di client connessi minore o uguale numero thread del fixed t.p., le prestazioni sono paragonabili - a meno di estremi cambi di contesto;
+	\item per un numero di client maggiore, il fixed non riuscirebbe a gestirli, mentre il cached sì, seppur sempre più lentamente al crescere del carico.
+\end{itemize} 
 
 \medskip
 
@@ -15,7 +20,7 @@ I thread sono inoltre indipendenti ed isolati, e per ogni richiesta esterna devo
 \subsection{\texttt{userManager}}
 È il nucleo del servizio di autenticazione di \texttt{TURING}, ed è implementato da una tabella hash concorrente (chiave: username).
 
-Viene utilizzato dal server come manager locale nel il server per il login e per i controlli di sicurezza delle operazioni, e dai client come manager remoto per la registrazione.
+Viene utilizzato dal server come manager locale per il login e per i controlli di sicurezza delle operazioni, e dai client come manager remoto per la registrazione.
 
 \paragraph{Funzionamento}
 Ogni nuovo utente registrato viene inserito all'interno della tabella tramite il metodo \texttt{signUp}, e recuperato col metodo \texttt{get}.
@@ -25,7 +30,7 @@ I client interagiscono col manager invocando i metodi esposti da una API.
 Implementato da una tabella hash non concorrente\footnote{In questo caso la corretta gestione della concorrenza non è garantita da una struttura dati concorrente, ma dalle locks delle sezioni, in quanto hanno una granularità più fine.} (chiave: username concatenato con il nome del documento), gestisce la creazione, la modifica e l'insieme degli utenti autorizzati alla modifica.
 
 \paragraph{Funzionamento}
-I documenti vengono aggiunti col metodo \texttt{put} e recuperati con due metodi get: uno per il creatore del documento (per permettere la condivisione), e uno per i collaboratori, (limitati alla modifica delle sezioni).
+I documenti vengono aggiunti col metodo \texttt{put} e recuperati con due metodi get: uno per il creatore del documento (per permettere la condivisione), e uno per i collaboratori (limitati alla modifica delle sezioni).
 
 \subsection{\texttt{addressManager}}
 Per assegnare e rilasciare su richiesta gli indirizzi multicast per le chat dei documenti, è stato utilizzato un \texttt{TreeSet} con un comparatore apposito per indirizzi IP, in quanto la classe \texttt{InetAddress} non è nativamente comparabile in Java. Viene interrogato tramite metodi \texttt{synchronized}.

@@ -1,19 +1,23 @@
 #!/bin/bash
 
 SCRIPTPATH=$(cd $(dirname "$0") && pwd)
-SRCPATH=$SCRIPTPATH/src
 
-cd $SCRIPTPATH
+SRC="src/"
+OUT="bin/"
+LIB="lib/"
+LIBNAME="json-lib.jar"
 
-mkdir -p lib
-mkdir -p bin
+cd "$SCRIPTPATH"
 
-cd lib
-if [ ! -f json-20180813.jar ]; then
-	curl http://central.maven.org/maven2/org/json/json/20180813/json-20180813.jar -o json-20180813.jar
+mkdir -p "$LIB"
+mkdir -p "$OUT"
+
+cd "$LIB"
+if [ ! -f "$LIBNAME" ]; then
+	curl http://central.maven.org/maven2/org/json/json/20180813/json-20180813.jar -o "$LIBNAME"
 fi
 
-cd $SRCPATH
+cd "$SCRIPTPATH"
 
-javac -sourcepath . -classpath ../lib/json-20180813.jar turing/server/*.java -d ../bin/
-javac -sourcepath . -classpath ../lib/json-20180813.jar turing/client/*.java -d ../bin/
+javac -sourcepath "$SRC" -classpath "$LIB$LIBNAME" "$SRC"turing/server/*.java -d "$OUT"
+javac -sourcepath "$SRC" -classpath "$LIB$LIBNAME" "$SRC"turing/client/*.java -d "$OUT"
