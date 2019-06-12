@@ -444,10 +444,7 @@ public class ClientHandler implements Runnable {
 
 		// check if section is unlocked
 		if (section.startEdit(currentUser)) {
-			status = Status.EDITING;
-			currentUser.setEditingSection(section); // lock user
-
-			// send section content
+			// read section content
 			String content;
 			try {
 				content = section.getContent();
@@ -455,6 +452,12 @@ public class ClientHandler implements Runnable {
 				sendError(e.getMessage());
 				return;
 			}
+
+			// lock user
+			status = Status.EDITING;
+			currentUser.setEditingSection(section);
+
+			// send section content
 			JSONObject reply = new JSONObject();
 			reply.put(Fields.STATUS, Fields.STATUS_OK)
 					.put(Fields.SEC_CONTENT, content)
