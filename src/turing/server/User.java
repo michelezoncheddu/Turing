@@ -113,7 +113,7 @@ public class User {
 	}
 
 	/**
-	 * Sets the client notifier, if the current one is null
+	 * Sets the client notifier
 	 *
 	 * @param notifier the client notifier
 	 */

@@ -10,7 +10,6 @@ import javax.swing.*;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.rmi.NotBoundException;
-import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -60,16 +59,13 @@ public abstract class Operation {
 			return;
 
 		// Remote Method Invocation
-		UserManagerAPI serverObject;
-		Remote remoteObject;
 		try {
 			// obtaining the remote object
 			Registry registry = LocateRegistry.getRegistry(Client.SERVER_ADDR);
-			remoteObject = registry.lookup(Client.REGISTRATION_OBJECT);
-			serverObject = (UserManagerAPI) remoteObject;
+			UserManagerAPI userManager = (UserManagerAPI) registry.lookup(Client.REGISTRATION_OBJECT);
 
 			// trying to register user
-			boolean success = serverObject.signUp(username, password);
+			boolean success = userManager.signUp(username, password);
 			if (success)
 				Client.frame.showInfoDialog(username + " registered");
 			else

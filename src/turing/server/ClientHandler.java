@@ -2,9 +2,9 @@ package turing.server;
 
 import org.json.JSONArray;
 import org.json.JSONException;
-import turing.Fields;
-
 import org.json.JSONObject;
+
+import turing.Fields;
 import turing.server.exceptions.*;
 
 import java.io.*;

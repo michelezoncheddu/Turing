@@ -1,12 +1,11 @@
 package turing.server;
 
 import turing.UserManagerAPI;
-import turing.server.exceptions.AlreadyLoggedException;
 import turing.server.exceptions.InexistentUserException;
 
 import java.io.File;
-import java.rmi.*;
-import java.rmi.server.*;
+import java.rmi.RemoteException;
+import java.rmi.server.RemoteServer;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
